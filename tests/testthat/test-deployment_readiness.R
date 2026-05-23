@@ -31,9 +31,15 @@ test_that("project has package-like deployment metadata", {
   expect_equal(description[["Version"]], "0.0.1")
   expect_match(description[["Title"]], "IAH Clamp-Based Risk Calculator", fixed = TRUE)
   expect_match(description[["Description"]], "Shiny application", fixed = TRUE)
+  expect_match(description[["URL"]], "https://zhanglabuky.github.io/IAHRiskCalc/", fixed = TRUE)
+  expect_match(description[["URL"]], "https://github.com/ZhangLabUKY/IAHRiskCalc", fixed = TRUE)
+  expect_equal(description[["BugReports"]], "https://github.com/ZhangLabUKY/IAHRiskCalc/issues")
 
   news_text <- paste(readLines(project_file("NEWS.md"), warn = FALSE), collapse = "\n")
   expect_match(news_text, "# IAHRiskCalc 0.0.1", fixed = TRUE)
+
+  pkgdown_text <- paste(readLines(project_file("_pkgdown.yml"), warn = FALSE), collapse = "\n")
+  expect_match(pkgdown_text, "url: https://zhanglabuky.github.io/IAHRiskCalc/", fixed = TRUE)
 })
 
 test_that("declared deployment packages are available", {

@@ -670,6 +670,34 @@
         "Archs": "x64"
       }
     },
+    "downlit": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "downlit",
+        "Title": "Syntax Highlighting and Automatic Linking",
+        "Version": "0.4.5",
+        "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"))\n  )",
+        "Description": "Syntax highlighting of R code, specifically designed for the\n    needs of 'RMarkdown' packages like 'pkgdown', 'hugodown', and\n    'bookdown'. It includes linking of function calls to their\n    documentation on the web, and automatic translation of ANSI escapes in\n    output to the equivalent HTML.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://downlit.r-lib.org/, https://github.com/r-lib/downlit",
+        "BugReports": "https://github.com/r-lib/downlit/issues",
+        "Depends": "R (>= 4.0.0)",
+        "Imports": "brio, desc, digest, evaluate, fansi, memoise, rlang, vctrs,\nwithr, yaml",
+        "Suggests": "covr, htmltools, jsonlite, MASS, MassSpecWavelet, pkgload,\nrmarkdown, testthat (>= 3.0.0), xml2",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Config/testthat/edition": "3",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.3",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-11-13 22:37:09 UTC; hadleywickham",
+        "Author": "Hadley Wickham [aut, cre],\n  Posit Software, PBC [cph, fnd]",
+        "Maintainer": "Hadley Wickham <hadley@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-11-14 08:40:16 UTC",
+        "Built": "R 4.5.2; ; 2025-12-03 04:28:51 UTC; windows"
+      }
+    },
     "dplyr": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -735,6 +763,35 @@
         "Repository": "CRAN",
         "Date/Publication": "2025-08-27 16:40:02 UTC",
         "Built": "R 4.5.1; ; 2025-09-08 00:25:27 UTC; windows"
+      }
+    },
+    "fansi": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "fansi",
+        "Title": "ANSI Control Sequence Aware String Functions",
+        "Description": "Counterparts to R string manipulation functions that account for\n   the effects of ANSI text formatting control sequences.",
+        "Version": "1.0.7",
+        "Authors@R": "c(\n    person(\"Brodie\", \"Gaslam\", email=\"brodie.gaslam@yahoo.com\",\n    role=c(\"aut\", \"cre\")),\n    person(\"Elliott\", \"Sales De Andrade\", role=\"ctb\"),\n    person(given=\"R Core Team\",\n    email=\"R-core@r-project.org\", role=\"cph\",\n    comment=\"UTF8 byte length calcs from src/util.c\"\n    ),\n    person(\"Michael\",\"Chirico\", role=\"ctb\",\n    email=\"michaelchirico4@gmail.com\", comment = c(ORCID=\"0000-0003-0787-087X\")\n    ),\n    person(given = \"Unicode, Inc.\",\n    role = c(\"cph\", \"dtc\"),\n    comment = \"Unicode Character Database derivative data in src/width.c\")\n    )",
+        "Depends": "R (>= 3.1.0)",
+        "License": "GPL-2 | GPL-3",
+        "URL": "https://github.com/brodieG/fansi",
+        "BugReports": "https://github.com/brodieG/fansi/issues",
+        "VignetteBuilder": "knitr",
+        "Suggests": "unitizer, knitr, rmarkdown",
+        "Imports": "grDevices, utils",
+        "RoxygenNote": "7.3.3",
+        "Encoding": "UTF-8",
+        "Collate": "'constants.R' 'fansi-package.R' 'internal.R' 'load.R' 'misc.R'\n'nchar.R' 'strwrap.R' 'strtrim.R' 'strsplit.R' 'substr2.R'\n'trimws.R' 'tohtml.R' 'unhandled.R' 'normalize.R' 'sgr.R'",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-11-18 23:27:14 UTC; brodie",
+        "Author": "Brodie Gaslam [aut, cre],\n  Elliott Sales De Andrade [ctb],\n  R Core Team [cph] (UTF8 byte length calcs from src/util.c),\n  Michael Chirico [ctb] (ORCID: <https://orcid.org/0000-0003-0787-087X>),\n  Unicode, Inc. [cph, dtc] (Unicode Character Database derivative data in\n    src/width.c)",
+        "Maintainer": "Brodie Gaslam <brodie.gaslam@yahoo.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-11-19 14:20:02 UTC",
+        "Built": "R 4.5.2; x86_64-w64-mingw32; 2025-12-03 00:54:52 UTC; windows",
+        "Archs": "x64"
       }
     },
     "farver": {
@@ -1192,6 +1249,37 @@
         "Repository": "CRAN",
         "Date/Publication": "2026-02-13 16:20:15 UTC",
         "Built": "R 4.5.2; ; 2026-02-22 03:03:57 UTC; windows"
+      }
+    },
+    "httr2": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "httr2",
+        "Title": "Perform HTTP Requests and Process the Responses",
+        "Version": "1.2.2",
+        "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = c(\"aut\", \"cre\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")),\n    person(\"Maximilian\", \"Girlich\", role = \"ctb\")\n  )",
+        "Description": "Tools for creating and modifying HTTP requests, then\n    performing them and processing the results. 'httr2' is a modern\n    re-imagining of 'httr' that uses a pipe-based interface and solves\n    more of the problems that API wrapping packages face.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://httr2.r-lib.org, https://github.com/r-lib/httr2",
+        "BugReports": "https://github.com/r-lib/httr2/issues",
+        "Depends": "R (>= 4.1)",
+        "Imports": "cli (>= 3.0.0), curl (>= 6.4.0), glue, lifecycle, magrittr,\nopenssl, R6, rappdirs, rlang (>= 1.1.0), vctrs (>= 0.6.3),\nwithr",
+        "Suggests": "askpass, bench, clipr, covr, docopt, httpuv, jose, jsonlite,\nknitr, later (>= 1.4.0), nanonext, otel (>= 0.2.0), otelsdk (>=\n0.2.0), paws.common (>= 0.8.0), promises, rmarkdown, testthat\n(>= 3.1.8), tibble, webfakes (>= 1.4.0), xml2",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "true",
+        "Config/testthat/start-first": "resp-stream, req-perform",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.3",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-12-05 17:46:06 UTC; hadleywickham",
+        "Author": "Hadley Wickham [aut, cre],\n  Posit Software, PBC [cph, fnd],\n  Maximilian Girlich [ctb]",
+        "Maintainer": "Hadley Wickham <hadley@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-12-08 09:50:02 UTC",
+        "Built": "R 4.5.2; ; 2026-02-22 03:04:03 UTC; windows"
       }
     },
     "isoband": {
@@ -1688,6 +1776,40 @@
         "RemoteRepos": "https://cran.rstudio.com/",
         "RemotePkgPlatform": "i386+x86_64-w64-mingw32",
         "RemoteSha": "2.0.3"
+      }
+    },
+    "pkgdown": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "pkgdown",
+        "Title": "Make Static HTML Documentation for a Package",
+        "Version": "2.2.0",
+        "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", , \"hadley@posit.co\", role = c(\"aut\", \"cre\"),\n           comment = c(ORCID = \"0000-0003-4757-117X\")),\n    person(\"Jay\", \"Hesselberth\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-6299-179X\")),\n    person(\"Maëlle\", \"Salmon\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-2815-0399\")),\n    person(\"Olivier\", \"Roy\", role = \"aut\"),\n    person(\"Salim\", \"Brüggemann\", role = \"aut\",\n           comment = c(ORCID = \"0000-0002-5329-5987\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"),\n           comment = c(ROR = \"03wc8by49\"))\n  )",
+        "Description": "Generate an attractive and useful website from a source\n    package.  'pkgdown' converts your documentation, vignettes, 'README',\n    and more to 'HTML' making it easy to share information about your\n    package online.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://pkgdown.r-lib.org/, https://github.com/r-lib/pkgdown",
+        "BugReports": "https://github.com/r-lib/pkgdown/issues",
+        "Depends": "R (>= 4.1)",
+        "Imports": "bslib (>= 0.5.1), callr (>= 3.7.3), cli (>= 3.6.1), desc (>=\n1.4.0), downlit (>= 0.4.4), fontawesome, fs (>= 1.4.0), httr2\n(>= 1.0.2), jsonlite, lifecycle, openssl, purrr (>= 1.0.0),\nragg (>= 1.4.0), rlang (>= 1.1.4), rmarkdown (>= 2.27), tibble,\nwhisker, withr (>= 2.4.3), xml2 (>= 1.3.1), yaml (>= 2.3.9)",
+        "Suggests": "covr, diffviewer, evaluate (>= 0.24.0), gert, gt, htmltools,\nhtmlwidgets, knitr (>= 1.50), magick, methods, pkgload (>=\n1.0.2), quarto, rsconnect, rstudioapi, rticles, sass, testthat\n(>= 3.1.3), tools",
+        "VignetteBuilder": "knitr, quarto",
+        "Config/Needs/website": "usethis, servr",
+        "Config/potools/style": "explicit",
+        "Config/testthat/edition": "3",
+        "Config/testthat/parallel": "true",
+        "Config/testthat/start-first": "build-article, build-quarto-article,\nbuild-reference, build",
+        "Config/usethis/last-upkeep": "2025-09-07",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.3",
+        "SystemRequirements": "pandoc",
+        "NeedsCompilation": "no",
+        "Packaged": "2025-11-05 16:48:47 UTC; hadleywickham",
+        "Author": "Hadley Wickham [aut, cre] (ORCID:\n    <https://orcid.org/0000-0003-4757-117X>),\n  Jay Hesselberth [aut] (ORCID: <https://orcid.org/0000-0002-6299-179X>),\n  Maëlle Salmon [aut] (ORCID: <https://orcid.org/0000-0002-2815-0399>),\n  Olivier Roy [aut],\n  Salim Brüggemann [aut] (ORCID: <https://orcid.org/0000-0002-5329-5987>),\n  Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
+        "Maintainer": "Hadley Wickham <hadley@posit.co>",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-11-06 06:10:20 UTC",
+        "Built": "R 4.5.2; ; 2025-12-03 05:08:00 UTC; windows"
       }
     },
     "pkgload": {
@@ -2777,6 +2899,29 @@
         "Built": "R 4.5.1; ; 2025-08-04 01:05:33 UTC; windows"
       }
     },
+    "whisker": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "whisker",
+        "Maintainer": "Edwin de Jonge <edwindjonge@gmail.com>",
+        "License": "GPL-3",
+        "Title": "{{mustache}} for R, Logicless Templating",
+        "Type": "Package",
+        "LazyLoad": "yes",
+        "Author": "Edwin de Jonge",
+        "Description": "Implements 'Mustache' logicless templating.",
+        "Version": "0.4.1",
+        "URL": "https://github.com/edwindj/whisker",
+        "Suggests": "markdown",
+        "RoxygenNote": "6.1.1",
+        "NeedsCompilation": "no",
+        "Packaged": "2022-12-05 15:15:55 UTC; hornik",
+        "Repository": "CRAN",
+        "Date/Publication": "2022-12-05 15:33:50 UTC",
+        "Built": "R 4.3.1; ; 2023-10-24 00:44:40 UTC; windows"
+      }
+    },
     "withr": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -2846,6 +2991,38 @@
         "RemoteRepos": "https://cran.rstudio.com/",
         "RemotePkgPlatform": "x86_64-w64-mingw32",
         "RemoteSha": "0.57"
+      }
+    },
+    "xml2": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "xml2",
+        "Title": "Parse XML",
+        "Version": "1.5.2",
+        "Authors@R": "c(\n    person(\"Hadley\", \"Wickham\", role = \"aut\"),\n    person(\"Jim\", \"Hester\", role = \"aut\"),\n    person(\"Jeroen\", \"Ooms\", email = \"jeroenooms@gmail.com\", role = c(\"aut\", \"cre\")),\n    person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")),\n    person(\"R Foundation\", role = \"ctb\",\n           comment = \"Copy of R-project homepage cached as example\")\n  )",
+        "Description": "Bindings to 'libxml2' for working with XML data using a simple, \n    consistent interface based on 'XPath' expressions. Also supports XML schema\n    validation; for 'XSLT' transformations see the 'xslt' package.",
+        "License": "MIT + file LICENSE",
+        "URL": "https://xml2.r-lib.org, https://r-lib.r-universe.dev/xml2",
+        "BugReports": "https://github.com/r-lib/xml2/issues",
+        "Depends": "R (>= 3.6.0)",
+        "Imports": "cli, methods, rlang (>= 1.1.0)",
+        "Suggests": "covr, curl, httr, knitr, mockery, rmarkdown, testthat (>=\n3.2.0), xslt",
+        "VignetteBuilder": "knitr",
+        "Config/Needs/website": "tidyverse/tidytemplate",
+        "Encoding": "UTF-8",
+        "RoxygenNote": "7.3.3",
+        "SystemRequirements": "libxml2: libxml2-dev (deb), libxml2-devel (rpm)",
+        "Collate": "'S4.R' 'as_list.R' 'xml_parse.R' 'as_xml_document.R'\n'classes.R' 'format.R' 'import-standalone-obj-type.R'\n'import-standalone-purrr.R' 'import-standalone-types-check.R'\n'init.R' 'nodeset_apply.R' 'paths.R' 'utils.R' 'xml2-package.R'\n'xml_attr.R' 'xml_children.R' 'xml_document.R' 'xml_find.R'\n'xml_missing.R' 'xml_modify.R' 'xml_name.R' 'xml_namespaces.R'\n'xml_node.R' 'xml_nodeset.R' 'xml_path.R' 'xml_schema.R'\n'xml_serialize.R' 'xml_structure.R' 'xml_text.R' 'xml_type.R'\n'xml_url.R' 'xml_write.R' 'zzz.R'",
+        "Config/testthat/edition": "3",
+        "NeedsCompilation": "yes",
+        "Packaged": "2026-01-17 13:03:05 UTC; jeroen",
+        "Author": "Hadley Wickham [aut],\n  Jim Hester [aut],\n  Jeroen Ooms [aut, cre],\n  Posit Software, PBC [cph, fnd],\n  R Foundation [ctb] (Copy of R-project homepage cached as example)",
+        "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2026-01-17 16:10:02 UTC",
+        "Built": "R 4.5.2; x86_64-w64-mingw32; 2026-02-22 02:31:10 UTC; windows",
+        "Archs": "x64"
       }
     },
     "xtable": {
@@ -2932,20 +3109,167 @@
     }
   },
   "files": {
+    ".github/workflows/pkgdown.yaml": {
+      "checksum": "bc69eb48629602713c31f69ebd708ac1"
+    },
+    ".github/workflows/R-CMD-check.yaml": {
+      "checksum": "d14f3e2b8b194dbf524efa7c190699e4"
+    },
     ".Rbuildignore": {
-      "checksum": "227c1407a6f77175a1ec6c61051d1cdb"
+      "checksum": "6c65abd8bfe97678f0fb9a9f0764b821"
+    },
+    "_pkgdown.yml": {
+      "checksum": "e3bdb4ab50accc58df29c905df742fbd"
     },
     "app.R": {
       "checksum": "529c77ce1d7f1bbf0db45ce47375b968"
     },
     "DESCRIPTION": {
-      "checksum": "c57c364cd212864b844fe9cc20786d88"
+      "checksum": "810d989301a09e476d278935bd06f71c"
     },
     "dev_notes/PROGRESS.md": {
-      "checksum": "e7419e995084f41643d18bc9c402ec6e"
+      "checksum": "914baa15ec9c389c8487949a671acdfb"
     },
     "dev_notes/README.md": {
       "checksum": "13a183e1ed8f10727c4d2730d91d0dc3"
+    },
+    "docs/404.html": {
+      "checksum": "85953a02b2b5444c83b1c639f2a75680"
+    },
+    "docs/404.md": {
+      "checksum": "1e66acd56c510518f4f5bd64aef8f5cc"
+    },
+    "docs/authors.html": {
+      "checksum": "502dcc5b9bc7d83ad54cfd0388859ccd"
+    },
+    "docs/authors.md": {
+      "checksum": "866e081700d3f5b6167a5f7bbd099c53"
+    },
+    "docs/deps/bootstrap-5.3.1/bootstrap.bundle.min.js": {
+      "checksum": "e2b09c06f0e714b6144a6788a28e3950"
+    },
+    "docs/deps/bootstrap-5.3.1/bootstrap.bundle.min.js.map": {
+      "checksum": "9c73ded054de790fdd86dec929def3b4"
+    },
+    "docs/deps/bootstrap-5.3.1/bootstrap.min.css": {
+      "checksum": "5d47e4ef21437c4d6aeb7425c8db69af"
+    },
+    "docs/deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js": {
+      "checksum": "c82ff4de8b0955d6ff14f5b05eed7eb6"
+    },
+    "docs/deps/clipboard.js-2.0.11/clipboard.min.js": {
+      "checksum": "15f52a1ee547f2bdd46e56747332ca2d"
+    },
+    "docs/deps/data-deps.txt": {
+      "checksum": "4ecdb93fdd88f14fdbd5b64dadaaa092"
+    },
+    "docs/deps/font-awesome-6.5.2/css/all.css": {
+      "checksum": "6482469c759d5aebb3a144d9b3c68bf6"
+    },
+    "docs/deps/font-awesome-6.5.2/css/all.min.css": {
+      "checksum": "137c44fa125a1d5142cfd92f463b9542"
+    },
+    "docs/deps/font-awesome-6.5.2/css/v4-shims.css": {
+      "checksum": "3c287201d94b1d847e02aa01d3770820"
+    },
+    "docs/deps/font-awesome-6.5.2/css/v4-shims.min.css": {
+      "checksum": "b179b3372e22ec97992038b52be36c15"
+    },
+    "docs/deps/font-awesome-6.5.2/webfonts/fa-brands-400.ttf": {
+      "checksum": "b7dee83cb5ee2c47b053e2620f4bbb78"
+    },
+    "docs/deps/font-awesome-6.5.2/webfonts/fa-brands-400.woff2": {
+      "checksum": "b55b1345f0b919f0cab774ec25d6654e"
+    },
+    "docs/deps/font-awesome-6.5.2/webfonts/fa-regular-400.ttf": {
+      "checksum": "3c264849ff4eb9b6e99eab9cd54c80ae"
+    },
+    "docs/deps/font-awesome-6.5.2/webfonts/fa-regular-400.woff2": {
+      "checksum": "aa7c5fa494807f7a9ec907defee083e8"
+    },
+    "docs/deps/font-awesome-6.5.2/webfonts/fa-solid-900.ttf": {
+      "checksum": "0a95f951745ba02faa8773ea6a1ebaed"
+    },
+    "docs/deps/font-awesome-6.5.2/webfonts/fa-solid-900.woff2": {
+      "checksum": "1ec0ba058c021acf7feaa18081445d63"
+    },
+    "docs/deps/font-awesome-6.5.2/webfonts/fa-v4compatibility.ttf": {
+      "checksum": "95b97efa98f9e3fb869bc9634c43a0cc"
+    },
+    "docs/deps/font-awesome-6.5.2/webfonts/fa-v4compatibility.woff2": {
+      "checksum": "fdb652dcc200dd23b8b8040176858c36"
+    },
+    "docs/deps/headroom-0.11.0/headroom.min.js": {
+      "checksum": "5b714c82675b78b78737585c71a42aa8"
+    },
+    "docs/deps/headroom-0.11.0/jQuery.headroom.min.js": {
+      "checksum": "5d00b65f84e4be18124b864f30d66754"
+    },
+    "docs/deps/jquery-3.6.0/jquery-3.6.0.js": {
+      "checksum": "2849239b95f5a9a2aea3f6ed9420bb88"
+    },
+    "docs/deps/jquery-3.6.0/jquery-3.6.0.min.js": {
+      "checksum": "8fb8fee4fcc3cc86ff6c724154c49c42"
+    },
+    "docs/deps/jquery-3.6.0/jquery-3.6.0.min.map": {
+      "checksum": "6efc5d663aaacac2024153fa0d4bafcd"
+    },
+    "docs/deps/search-1.0.0/autocomplete.jquery.min.js": {
+      "checksum": "92fe1867b8a852d38fc44334fcde4618"
+    },
+    "docs/deps/search-1.0.0/fuse.min.js": {
+      "checksum": "a9b84ece54b1853525a2c76fd12aa23c"
+    },
+    "docs/deps/search-1.0.0/mark.min.js": {
+      "checksum": "d0c5399929d81f67cd6d7687880498a6"
+    },
+    "docs/index.html": {
+      "checksum": "750469c7cf13f58806cd22fc0683ba61"
+    },
+    "docs/index.md": {
+      "checksum": "ddbf37c1823ac27fe6dd83b3eede4bd5"
+    },
+    "docs/katex-auto.js": {
+      "checksum": "b890f6fad8eb9ce3a32eea2239934274"
+    },
+    "docs/LICENSE.html": {
+      "checksum": "e59a736514c2f83134354ddeea8029b4"
+    },
+    "docs/LICENSE.md": {
+      "checksum": "34bd8abef5fe3f471c1d10ccbf2aed6f"
+    },
+    "docs/lightswitch.js": {
+      "checksum": "fede8a6a6ba71fd2cacb48c55533a081"
+    },
+    "docs/link.svg": {
+      "checksum": "4759f31f8a585e9af173fc579d730265"
+    },
+    "docs/llms.txt": {
+      "checksum": "001c6386e84f754c71663f194aebb8cd"
+    },
+    "docs/news/index.html": {
+      "checksum": "d728545341431827e05c5a88b778c97c"
+    },
+    "docs/news/index.md": {
+      "checksum": "fa8bf7e2b56ffca805cd9195cf53dec4"
+    },
+    "docs/pkgdown.js": {
+      "checksum": "1c9c0d6bf54c521a9993e0b2d23c5d08"
+    },
+    "docs/pkgdown.yml": {
+      "checksum": "e7b7d274acb2dcda5b074aa142411d31"
+    },
+    "docs/reference/index.html": {
+      "checksum": "0e83624728c3188a9c6f13ad6d10fe0b"
+    },
+    "docs/reference/index.md": {
+      "checksum": "fb11ef1785185b32764861b5b68e8fce"
+    },
+    "docs/search.json": {
+      "checksum": "ede4223ddd72845077608377c43c47d3"
+    },
+    "docs/sitemap.xml": {
+      "checksum": "bbbd8559255fdf40de89389a3a30ab68"
     },
     "LICENSE.md": {
       "checksum": "3d82780e8917b360cbee7b9ec3e40734"
@@ -2981,7 +3305,10 @@
       "checksum": "f80bc8ca8a0a1b4d3b3b76ae76e340e8"
     },
     "README.md": {
-      "checksum": "fcbf0cda3487aee1db0640e3a7481804"
+      "checksum": "97b5a6bc60fe19966aa9988c7237fa12"
+    },
+    "README.Rmd": {
+      "checksum": "dc86c57a3fd530f3d54f70bd66aa64c4"
     },
     "Reference-Data/ClampData.csv": {
       "checksum": "ed26baf86b93f06e6e642f67915dd472"
@@ -3017,7 +3344,7 @@
       "checksum": "1bff5521ad3de27a9535199daad8a77c"
     },
     "tests/testthat/test-deployment_readiness.R": {
-      "checksum": "7f0fadb60b31b5d5d682c279e4c5f256"
+      "checksum": "155b2d7ca949f391fb259631e690e9fd"
     },
     "tests/testthat/test-import_uploads.R": {
       "checksum": "9711ee9e32122486d6d75a6357ff63e2"

@@ -1,0 +1,21 @@
+url: https://zhanglabuky.github.io/IAHRiskCalc/
+template:
+  bootstrap: 5
+  light-switch: yes
+home:
+  title: Welcome to IAHRiskCalc
+  tagline: An R Shiny application for calculating clamp-based impaired awareness of
+    hypoglycemia risk scores.
+navbar:
+  title: IAHRiskCalc
+  left:
+  - text: News
+    menu:
+    - text: Changelog
+      href: news/index.html
+footer:
+  left: © 2026 Shubh Saraswat
+  right: Built with pkgdown
+development:
+  mode: auto
+
