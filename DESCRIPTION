@@ -14,19 +14,19 @@ Encoding: UTF-8
 Depends:
     R (>= 4.1.0)
 Imports:
+    DT,
     ggplot2,
     data.table,
     plotly,
     ragg,
     readxl,
-    svglite
-Suggests:
-    DT,
-    htmlwidgets,
     shiny,
-    testthat,
-    writexl,
+    svglite,
     zip
+Suggests:
+    htmlwidgets,
+    testthat,
+    writexl
 RoxygenNote: 7.3.3
 Config/testthat/edition: 3
 NeedsCompilation: no

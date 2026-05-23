@@ -110,6 +110,7 @@ write_raw_grouped_xlsx_fixture <- function(path = tempfile(fileext = ".xlsx")) {
 }
 
 if (has_source_checkout()) {
+  library(shiny)
   source(file.path(PROJECT_ROOT, "R", "calc_scores.R"))
   source(file.path(PROJECT_ROOT, "R", "validate_inputs.R"))
   source(file.path(PROJECT_ROOT, "R", "imputation.R"))
@@ -117,6 +118,7 @@ if (has_source_checkout()) {
   source(file.path(PROJECT_ROOT, "R", "transform_inputs.R"))
   source(file.path(PROJECT_ROOT, "R", "preflight.R"))
   source(file.path(PROJECT_ROOT, "R", "plots.R"))
+  source(file.path(PROJECT_ROOT, "R", "app_shiny.R"))
 } else {
   ns <- asNamespace("IAHRiskCalc")
   for (name in ls(ns, all.names = TRUE)) {
