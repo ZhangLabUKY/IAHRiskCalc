@@ -1,0 +1,10 @@
+dev_notes/
+Reference-data/
+Risk-Calc.drawio
+Risk-Calc.drawio.png
+.Rproj.user
+.Rhistory
+.RData
+.httr-oauth
+.DS_Store
+.quarto

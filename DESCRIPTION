@@ -1,0 +1,30 @@
+Package: IAHRiskCalc
+Title: IAH Clamp-Based Risk Calculator
+Version: 0.0.1
+Authors@R: c(
+    person("Shubh", "Saraswat", email = "shubh.saraswat00@gmail.com", role = c("cre", "aut", "cph"),
+    comment = c(ORCID = "0009-0009-2359-1484")),
+    person("Xiaohua Douglas", "Zhang", email = "douglas.zhang@uky.edu", role = "aut",
+    comment = c(ORCID = "0000-0002-2486-7931")))
+Description: Shiny application for calculating clamp-based impaired awareness of hypoglycemia risk scores from uploaded or manually entered physiological and symptom response data.
+License: GPL (>= 2)
+Encoding: UTF-8
+Depends:
+    R (>= 4.1.0)
+Imports:
+    ggplot2,
+    data.table,
+    plotly,
+    ragg,
+    readxl,
+    svglite
+Suggests:
+    DT,
+    htmlwidgets,
+    shiny,
+    testthat,
+    zip
+RoxygenNote: 7.3.3
+Config/testthat/edition: 3
+NeedsCompilation: no
+Language: en-US
