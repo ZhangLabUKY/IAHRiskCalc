@@ -6,3 +6,8 @@
 ^www
 ^app\.R
 ^LICENSE\.md$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.github$
+^README\.Rmd$

@@ -1,27 +1,29 @@
-test_that("real clean wide upload preflights offset warnings before scoring", {
-  skip_if_no_source_checkout()
-  path <- reference_data_file("ClampData_clean_wide.csv")
+test_that("synthetic clean wide upload preflights offset warnings before scoring", {
+  df <- score_fixture()
+  df <- data.frame("Subject ID" = c("S001", "S002"), df[rep(1, 2), ], check.names = FALSE)
+  df$Epinephrine_90[[1]] <- 0
+  df$Norepinephrine_90[[1]] <- 0
+  path <- write_wide_csv_fixture(df)
 
-  preflight <- preflight_upload(path, "ClampData_clean_wide.csv")
+  preflight <- preflight_upload(path, "synthetic_wide.csv")
 
   expect_true(preflight$ok)
   expect_equal(preflight$audit$detected_format, "pattern_wide")
-  expect_equal(nrow(preflight$data), 19)
+  expect_equal(nrow(preflight$data), 2)
   expect_equal(nrow(preflight$offset_fields), 2)
-  expect_true(all(preflight$offset_fields$participant_id == "03JC"))
+  expect_true(all(preflight$offset_fields$participant_id == "S001"))
   expect_true(all(preflight$offset_fields$variable %in% c("Epinephrine_90", "Norepinephrine_90")))
 })
 
-test_that("real workbook upload preflights audit without scoring", {
-  skip_if_no_source_checkout()
-  path <- reference_data_file("ClampData.xlsx")
+test_that("synthetic workbook upload preflights audit without scoring", {
+  path <- write_raw_grouped_xlsx_fixture()
 
-  preflight <- preflight_upload(path, "ClampData.xlsx")
+  preflight <- preflight_upload(path, "synthetic_raw_grouped.xlsx")
 
   expect_true(preflight$ok)
   expect_equal(preflight$audit$detected_format, "raw_grouped_workbook")
   expect_equal(length(preflight$audit$parsed_columns), length(required_score_cols()))
-  expect_equal(nrow(preflight$data), 19)
+  expect_equal(nrow(preflight$data), 2)
 })
 
 test_that("preflight detects missing required values before scoring", {

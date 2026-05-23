@@ -8,6 +8,8 @@ Authors@R: c(
     comment = c(ORCID = "0000-0002-2486-7931")))
 Description: Shiny application for calculating clamp-based impaired awareness of hypoglycemia risk scores from uploaded or manually entered physiological and symptom response data.
 License: GPL (>= 2)
+URL: https://zhanglabuky.github.io/IAHRiskCalc/, https://github.com/ZhangLabUKY/IAHRiskCalc
+BugReports: https://github.com/ZhangLabUKY/IAHRiskCalc/issues
 Encoding: UTF-8
 Depends:
     R (>= 4.1.0)
@@ -23,6 +25,7 @@ Suggests:
     htmlwidgets,
     shiny,
     testthat,
+    writexl,
     zip
 RoxygenNote: 7.3.3
 Config/testthat/edition: 3
