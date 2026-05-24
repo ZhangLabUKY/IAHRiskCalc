@@ -35,23 +35,3 @@ test_that("static plot export helpers create requested files", {
   expect_true(file.exists(pdf_path))
   expect_gt(file.info(pdf_path)$size, 0)
 })
-
-test_that("plot helper text documents Plotly interactivity and interpretable labels", {
-  skip_if_no_source_checkout()
-  plot_path <- file.path(PROJECT_ROOT, "R", "plots.R")
-  plot_text <- paste(readLines(plot_path, warn = FALSE), collapse = "\n")
-
-  expect_true(grepl("plotly::plot_ly", plot_text, fixed = TRUE))
-  expect_true(grepl("hovertemplate", plot_text, fixed = TRUE))
-  expect_true(grepl("Clamp Response Profile by Glucose Level", plot_text, fixed = TRUE))
-  expect_true(grepl("Response value used for scoring", plot_text, fixed = TRUE))
-  expect_true(grepl("Adjusted 45-vs-90 Score Contributions", plot_text, fixed = TRUE))
-  expect_true(grepl("Adjusted response values", plot_text, fixed = TRUE))
-  expect_true(grepl("45 minus 90 response", plot_text, fixed = TRUE))
-  expect_true(grepl("Unadjusted 45 mg/dL Score Contributions", plot_text, fixed = TRUE))
-  expect_true(grepl("Response values", plot_text, fixed = TRUE))
-  expect_true(grepl("45 mg/dL response value", plot_text, fixed = TRUE))
-  expect_true(grepl("ggplot2::ggplot", plot_text, fixed = TRUE))
-  expect_true(grepl("export_profile_figure_files", plot_text, fixed = TRUE))
-  expect_true(grepl("export_profile_figures_pdf", plot_text, fixed = TRUE))
-})

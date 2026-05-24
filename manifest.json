@@ -2958,6 +2958,34 @@
         "RemoteSha": "3.0.2"
       }
     },
+    "writexl": {
+      "Source": "CRAN",
+      "Repository": "https://cran.rstudio.com",
+      "description": {
+        "Package": "writexl",
+        "Type": "Package",
+        "Title": "Export Data Frames to Excel 'xlsx' Format",
+        "Version": "1.5.4",
+        "Authors@R": "c(\n    person(\"Jeroen\", \"Ooms\", ,\"jeroenooms@gmail.com\", role = c(\"aut\", \"cre\"),\n      comment = c(ORCID = \"0000-0002-4035-0289\")),\n    person(\"John McNamara\", role = \"cph\",\n      comment = \"Author of libxlsxwriter (see AUTHORS and COPYRIGHT files for details)\"))",
+        "Description": "Zero-dependency data frame to xlsx exporter based on 'libxlsxwriter'\n    <https://libxlsxwriter.github.io>. Fast and no Java or Excel required.",
+        "License": "BSD_2_clause + file LICENSE",
+        "Encoding": "UTF-8",
+        "URL": "https://ropensci.r-universe.dev/writexl\nhttps://docs.ropensci.org/writexl/",
+        "BugReports": "https://github.com/ropensci/writexl/issues",
+        "RoxygenNote": "7.0.2",
+        "Suggests": "spelling, readxl, nycflights13, testthat, bit64",
+        "Language": "en-US",
+        "SystemRequirements": "zlib",
+        "NeedsCompilation": "yes",
+        "Packaged": "2025-04-15 13:34:41 UTC; jeroen",
+        "Author": "Jeroen Ooms [aut, cre] (<https://orcid.org/0000-0002-4035-0289>),\n  John McNamara [cph] (Author of libxlsxwriter (see AUTHORS and COPYRIGHT\n    files for details))",
+        "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
+        "Repository": "CRAN",
+        "Date/Publication": "2025-04-15 14:40:03 UTC",
+        "Built": "R 4.5.0; x86_64-w64-mingw32; 2025-04-19 00:30:01 UTC; windows",
+        "Archs": "x64"
+      }
+    },
     "xfun": {
       "Source": "CRAN",
       "Repository": "https://cran.rstudio.com",
@@ -3122,13 +3150,13 @@
       "checksum": "e3bdb4ab50accc58df29c905df742fbd"
     },
     "app.R": {
-      "checksum": "529c77ce1d7f1bbf0db45ce47375b968"
+      "checksum": "7f10cb58f61a4f191ce5d2f0e0a8ca13"
     },
     "DESCRIPTION": {
-      "checksum": "810d989301a09e476d278935bd06f71c"
+      "checksum": "db561c4642a30867802f293be0c294df"
     },
     "dev_notes/PROGRESS.md": {
-      "checksum": "914baa15ec9c389c8487949a671acdfb"
+      "checksum": "b4728f58a1e2d65c4dc0798266e6c707"
     },
     "dev_notes/README.md": {
       "checksum": "13a183e1ed8f10727c4d2730d91d0dc3"
@@ -3224,10 +3252,10 @@
       "checksum": "d0c5399929d81f67cd6d7687880498a6"
     },
     "docs/index.html": {
-      "checksum": "750469c7cf13f58806cd22fc0683ba61"
+      "checksum": "c2bb1b2dbef72c4123aa3b0ce2780efd"
     },
     "docs/index.md": {
-      "checksum": "ddbf37c1823ac27fe6dd83b3eede4bd5"
+      "checksum": "3fb1bfcd088b3538c1e50f786ee29493"
     },
     "docs/katex-auto.js": {
       "checksum": "b890f6fad8eb9ce3a32eea2239934274"
@@ -3245,19 +3273,19 @@
       "checksum": "4759f31f8a585e9af173fc579d730265"
     },
     "docs/llms.txt": {
-      "checksum": "001c6386e84f754c71663f194aebb8cd"
+      "checksum": "2035a7f8d8b4b15dca40251bfd25c9f4"
     },
     "docs/news/index.html": {
-      "checksum": "d728545341431827e05c5a88b778c97c"
+      "checksum": "dba75f3eb1f2ac5dfa1159a35e08073d"
     },
     "docs/news/index.md": {
-      "checksum": "fa8bf7e2b56ffca805cd9195cf53dec4"
+      "checksum": "1534205358aa6fb513920a324df36028"
     },
     "docs/pkgdown.js": {
       "checksum": "1c9c0d6bf54c521a9993e0b2d23c5d08"
     },
     "docs/pkgdown.yml": {
-      "checksum": "e7b7d274acb2dcda5b074aa142411d31"
+      "checksum": "f296de955cc3ae85e125b0ea2d5d4c30"
     },
     "docs/reference/index.html": {
       "checksum": "0e83624728c3188a9c6f13ad6d10fe0b"
@@ -3266,7 +3294,7 @@
       "checksum": "fb11ef1785185b32764861b5b68e8fce"
     },
     "docs/search.json": {
-      "checksum": "ede4223ddd72845077608377c43c47d3"
+      "checksum": "2c77a4745db7f89fbc48515d81cd7a25"
     },
     "docs/sitemap.xml": {
       "checksum": "bbbd8559255fdf40de89389a3a30ab68"
@@ -3275,13 +3303,16 @@
       "checksum": "3d82780e8917b360cbee7b9ec3e40734"
     },
     "NAMESPACE": {
-      "checksum": "dc21c19f0d6968ee25d441b2cf46017d"
+      "checksum": "20523d3580083edc455ec0e8e715f63f"
     },
     "NEWS.md": {
-      "checksum": "3ff98724d5813b58ac80ac44f54f3f0e"
+      "checksum": "8a3146ed446226269a79368c4b3b6fed"
+    },
+    "R/app_shiny.R": {
+      "checksum": "bffee9c128e4d19ce0d53eaf053eb2e7"
     },
     "R/calc_scores.R": {
-      "checksum": "4fe4b06df92d5440b340d80ceba4a1c3"
+      "checksum": "ce6d8552e0778e0144e5d6bcbec4f64f"
     },
     "R/globals.R": {
       "checksum": "475f884e059140a405d1233dd9da46d3"
@@ -3289,11 +3320,14 @@
     "R/import_uploads.R": {
       "checksum": "d5a9cede46b092953ba3db1fded107ba"
     },
+    "R/imports.R": {
+      "checksum": "6131ec70d29bf29d244ee5efb7307bb3"
+    },
     "R/imputation.R": {
       "checksum": "d9a638b55fbeb187d6f613d9cfb7ca09"
     },
     "R/plots.R": {
-      "checksum": "814f003f3ca1f3e12f4fb0d51096c784"
+      "checksum": "4b2442076d630bf6dec2573a5f98ec54"
     },
     "R/preflight.R": {
       "checksum": "6c327b275ab5960903a10ffad59abf5c"
@@ -3305,10 +3339,10 @@
       "checksum": "f80bc8ca8a0a1b4d3b3b76ae76e340e8"
     },
     "README.md": {
-      "checksum": "97b5a6bc60fe19966aa9988c7237fa12"
+      "checksum": "e4c440b01d19817656d74559b27e5fc7"
     },
     "README.Rmd": {
-      "checksum": "dc86c57a3fd530f3d54f70bd66aa64c4"
+      "checksum": "72b7d976d2b53c9724cfbf506055ec7c"
     },
     "Reference-Data/ClampData.csv": {
       "checksum": "ed26baf86b93f06e6e642f67915dd472"
@@ -3335,25 +3369,22 @@
       "checksum": "9a7a69403e95a6170200e63f2df2d0fe"
     },
     "tests/testthat/helper-sources.R": {
-      "checksum": "f5b23012b0d393a2dde20b270fd833b6"
+      "checksum": "421a6c7e00ec881771a4f86af60ee8bd"
     },
     "tests/testthat/test-app_structure.R": {
-      "checksum": "22c9a03b78dd7b0b2f735c459ade6486"
+      "checksum": "90f67790b45ecb877f66cf97503ffd93"
     },
     "tests/testthat/test-calc_scores.R": {
-      "checksum": "1bff5521ad3de27a9535199daad8a77c"
-    },
-    "tests/testthat/test-deployment_readiness.R": {
-      "checksum": "155b2d7ca949f391fb259631e690e9fd"
+      "checksum": "00b6c724a4bdd2cd7ea560d7b5c96595"
     },
     "tests/testthat/test-import_uploads.R": {
-      "checksum": "9711ee9e32122486d6d75a6357ff63e2"
+      "checksum": "7885e7f6ec69bd798591f21b9b0678f3"
     },
     "tests/testthat/test-plots.R": {
-      "checksum": "01a48a3c94246b2d759e1c73a703e4a7"
+      "checksum": "527370c29d7a38d97f38c6da5431cec8"
     },
     "tests/testthat/test-preflight.R": {
-      "checksum": "ce7b8b924f9f6545c3942d0f04e9e9d1"
+      "checksum": "7b89119f9e18d0e1401d027700d6cc15"
     },
     "tests/testthat/test-transform_inputs.R": {
       "checksum": "c06f5937feb09ef8980bf4ebe6b3a7ba"

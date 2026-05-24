@@ -12,12 +12,16 @@ test_that("calc_clamp_scores uses all 45 and paired 90 columns", {
   expect_equal(scores$participant_id, "Example")
   expect_equal(scores$unadjusted_45_sum, 80)
   expect_equal(scores$adjusted_45_vs_90_sum, 60)
-  expect_true(scores$unadjusted_at_risk)
-  expect_true(scores$adjusted_at_risk)
-  expect_equal(scores$overall_group, "IAH")
+  expect_true(scores$unadjusted_normal_awareness)
+  expect_true(scores$adjusted_normal_awareness)
+  expect_false(scores$unadjusted_impaired_awareness)
+  expect_false(scores$adjusted_impaired_awareness)
+  expect_false(scores$unadjusted_at_risk)
+  expect_false(scores$adjusted_at_risk)
+  expect_equal(scores$overall_group, "NAH")
 })
 
-test_that("single-cutoff positive cases are flagged as likely IAH", {
+test_that("single impaired-range score is flagged as likely IAH", {
   df <- as.data.frame(as.list(stats::setNames(rep(0, length(required_score_cols())), required_score_cols())),
                       check.names = FALSE)
   for (var in CLAMP_VARIABLES) {
@@ -27,13 +31,13 @@ test_that("single-cutoff positive cases are flagged as likely IAH", {
 
   scores <- calc_clamp_scores(df)
 
-  expect_true(scores$unadjusted_at_risk)
-  expect_false(scores$adjusted_at_risk)
+  expect_false(scores$unadjusted_at_risk)
+  expect_true(scores$adjusted_at_risk)
   expect_true(scores$discordant_flag)
   expect_equal(scores$overall_group, "Likely IAH")
 })
 
-test_that("below-cutoff cases are labelled NAH", {
+test_that("below-threshold cases are labelled IAH", {
   df <- as.data.frame(as.list(stats::setNames(rep(0, length(required_score_cols())), required_score_cols())),
                       check.names = FALSE)
   for (var in CLAMP_VARIABLES) {
@@ -43,9 +47,32 @@ test_that("below-cutoff cases are labelled NAH", {
 
   scores <- calc_clamp_scores(df)
 
-  expect_false(scores$unadjusted_at_risk)
-  expect_false(scores$adjusted_at_risk)
+  expect_false(scores$unadjusted_normal_awareness)
+  expect_false(scores$adjusted_normal_awareness)
+  expect_true(scores$unadjusted_impaired_awareness)
+  expect_true(scores$adjusted_impaired_awareness)
+  expect_true(scores$unadjusted_at_risk)
+  expect_true(scores$adjusted_at_risk)
   expect_false(scores$discordant_flag)
+  expect_equal(scores$overall_group, "IAH")
+})
+
+test_that("threshold equality is labelled NAH", {
+  df <- as.data.frame(as.list(stats::setNames(rep(0, length(required_score_cols())), required_score_cols())),
+                      check.names = FALSE)
+  for (var in CLAMP_VARIABLES) {
+    df[[paste0(var, "_45")]] <- UNADJUSTED_45_CUTOFF / length(CLAMP_VARIABLES)
+    df[[paste0(var, "_90")]] <- (UNADJUSTED_45_CUTOFF - ADJUSTED_45_VS_90_CUTOFF) / length(CLAMP_VARIABLES)
+  }
+
+  scores <- calc_clamp_scores(df)
+
+  expect_equal(scores$unadjusted_45_sum, UNADJUSTED_45_CUTOFF)
+  expect_equal(scores$adjusted_45_vs_90_sum, ADJUSTED_45_VS_90_CUTOFF)
+  expect_true(scores$unadjusted_normal_awareness)
+  expect_true(scores$adjusted_normal_awareness)
+  expect_false(scores$unadjusted_impaired_awareness)
+  expect_false(scores$adjusted_impaired_awareness)
   expect_equal(scores$overall_group, "NAH")
 })
 
@@ -91,15 +118,15 @@ test_that("display score results keep compact risk columns only", {
     names(display_scores),
     c(
       "Subject ID",
-      "Unadjusted 45 mg/dL score (cutoff >= 66.5)",
-      "Adjusted 45-vs-90 score (cutoff >= 25)",
-      "Risk status"
+      "Unadjusted 45 mg/dL score (NAH threshold >= 66.5)",
+      "Adjusted 45-vs-90 score (NAH threshold >= 25)",
+      "Awareness status"
     )
   )
   expect_equal(display_scores[["Subject ID"]], "Example")
-  expect_equal(display_scores[["Unadjusted 45 mg/dL score (cutoff >= 66.5)"]], 80)
-  expect_equal(display_scores[["Adjusted 45-vs-90 score (cutoff >= 25)"]], 60)
-  expect_equal(display_scores[["Risk status"]], "IAH")
+  expect_equal(display_scores[["Unadjusted 45 mg/dL score (NAH threshold >= 66.5)"]], 80)
+  expect_equal(display_scores[["Adjusted 45-vs-90 score (NAH threshold >= 25)"]], 60)
+  expect_equal(display_scores[["Awareness status"]], "NAH")
   expect_false("unadjusted_distance" %in% names(display_scores))
   expect_false("adjusted_distance" %in% names(display_scores))
   expect_true("unadjusted_45_sum" %in% names(scores))
@@ -107,7 +134,7 @@ test_that("display score results keep compact risk columns only", {
   expect_true("overall_group" %in% names(scores))
 })
 
-test_that("score summary counts separate any positive, both positive, and discordant rows", {
+test_that("score summary counts separate impaired-range and discordant rows", {
   scores <- data.frame(
     unadjusted_at_risk = c(TRUE, TRUE, FALSE, FALSE, NA),
     adjusted_at_risk = c(TRUE, FALSE, TRUE, FALSE, TRUE),
@@ -117,8 +144,8 @@ test_that("score summary counts separate any positive, both positive, and discor
   counts <- score_summary_counts(scores)
 
   expect_equal(counts$subjects_scored, 5)
-  expect_equal(counts$any_cutoff_positive, 3)
-  expect_equal(counts$both_cutoffs_positive, 1)
+  expect_equal(counts$any_impaired_score, 3)
+  expect_equal(counts$both_scores_impaired, 1)
   expect_equal(counts$discordant, 2)
   expect_equal(counts$unable_to_calculate, 1)
 })

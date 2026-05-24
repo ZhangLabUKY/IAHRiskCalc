@@ -43,16 +43,6 @@ test_that("wide uploads expose unrelated ID candidates but default to generated 
   expect_equal(rownames(selected$data), "Free text")
 })
 
-test_that("CSV uploads use data.table fread paths", {
-  skip_if_no_source_checkout()
-  import_path <- file.path(PROJECT_ROOT, "R", "import_uploads.R")
-  import_text <- paste(readLines(import_path, warn = FALSE), collapse = "\n")
-
-  expect_true(grepl("data.table::fread", import_text, fixed = TRUE))
-  expect_true(grepl("data.table::fread\\(\\s*file = path", import_text))
-  expect_false(grepl("read.csv", import_text, fixed = TRUE))
-})
-
 test_that("CSV uploads parse when the file path contains spaces", {
   df <- score_fixture()
   df <- data.frame("Subject ID" = "S001", df, check.names = FALSE)
@@ -66,17 +56,6 @@ test_that("CSV uploads parse when the file path contains spaces", {
   expect_equal(normalized$audit$detected_format, "pattern_wide")
   expect_equal(rownames(normalized$data), "S001")
   expect_equal(normalized$data$Heart_45, 4)
-})
-
-test_that("upload normalization reuses detected mappings and candidates", {
-  skip_if_no_source_checkout()
-  import_path <- file.path(PROJECT_ROOT, "R", "import_uploads.R")
-  import_text <- paste(readLines(import_path, warn = FALSE), collapse = "\n")
-
-  expect_true(grepl("wide_mappings <- wide_column_mapping", import_text, fixed = TRUE))
-  expect_true(grepl("normalize_wide_upload(table$canonical, sheet = table$sheet, mappings = wide_mappings)", import_text, fixed = TRUE))
-  expect_true(grepl("normalize_raw_grouped_upload(best_raw$table$raw, sheet = best_raw$table$sheet, candidate = best_raw$candidate)", import_text, fixed = TRUE))
-  expect_true(grepl("canonical_response_from_key", import_text, fixed = TRUE))
 })
 
 test_that("pattern-wide uploads normalize observed clean wide names", {

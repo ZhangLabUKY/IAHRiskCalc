@@ -106,27 +106,37 @@ calc_clamp_scores <- function(
     as.matrix(df[, cols_90, drop = FALSE])
   adjusted_45_vs_90_sum <- rowSums(adjusted_values, na.rm = FALSE)
 
-  unadjusted_at_risk <- ifelse(
+  unadjusted_normal_awareness <- ifelse(
     is.na(unadjusted_45_sum),
     NA,
     unadjusted_45_sum >= unadjusted_cutoff
   )
-  adjusted_at_risk <- ifelse(
+  adjusted_normal_awareness <- ifelse(
     is.na(adjusted_45_vs_90_sum),
     NA,
     adjusted_45_vs_90_sum >= adjusted_cutoff
   )
-  discordant_flag <- ifelse(
-    is.na(unadjusted_at_risk) | is.na(adjusted_at_risk),
+  unadjusted_impaired_awareness <- ifelse(
+    is.na(unadjusted_normal_awareness),
     NA,
-    xor(unadjusted_at_risk, adjusted_at_risk)
+    !unadjusted_normal_awareness
+  )
+  adjusted_impaired_awareness <- ifelse(
+    is.na(adjusted_normal_awareness),
+    NA,
+    !adjusted_normal_awareness
+  )
+  discordant_flag <- ifelse(
+    is.na(unadjusted_impaired_awareness) | is.na(adjusted_impaired_awareness),
+    NA,
+    xor(unadjusted_impaired_awareness, adjusted_impaired_awareness)
   )
 
   overall_group <- ifelse(
-    is.na(unadjusted_at_risk) | is.na(adjusted_at_risk),
+    is.na(unadjusted_impaired_awareness) | is.na(adjusted_impaired_awareness),
     "Unable to calculate; missing required values",
     ifelse(
-      unadjusted_at_risk & adjusted_at_risk,
+      unadjusted_impaired_awareness & adjusted_impaired_awareness,
       "IAH",
       ifelse(discordant_flag, "Likely IAH", "NAH")
     )
@@ -140,8 +150,12 @@ calc_clamp_scores <- function(
     adjusted_cutoff = adjusted_cutoff,
     unadjusted_distance = unadjusted_45_sum - unadjusted_cutoff,
     adjusted_distance = adjusted_45_vs_90_sum - adjusted_cutoff,
-    unadjusted_at_risk = unadjusted_at_risk,
-    adjusted_at_risk = adjusted_at_risk,
+    unadjusted_normal_awareness = unadjusted_normal_awareness,
+    adjusted_normal_awareness = adjusted_normal_awareness,
+    unadjusted_impaired_awareness = unadjusted_impaired_awareness,
+    adjusted_impaired_awareness = adjusted_impaired_awareness,
+    unadjusted_at_risk = unadjusted_impaired_awareness,
+    adjusted_at_risk = adjusted_impaired_awareness,
     discordant_flag = discordant_flag,
     missing_value_count = missing_value_count,
     imputation_used = FALSE,
@@ -153,19 +167,19 @@ calc_clamp_scores <- function(
 
 score_summary_counts <- function(scores) {
   unable <- is.na(scores$unadjusted_at_risk) | is.na(scores$adjusted_at_risk)
-  unadjusted_positive <- isTRUE(scores$unadjusted_at_risk)
-  adjusted_positive <- isTRUE(scores$adjusted_at_risk)
+  unadjusted_impaired <- isTRUE(scores$unadjusted_at_risk)
+  adjusted_impaired <- isTRUE(scores$adjusted_at_risk)
 
   if (nrow(scores) > 1) {
-    unadjusted_positive <- scores$unadjusted_at_risk %in% TRUE
-    adjusted_positive <- scores$adjusted_at_risk %in% TRUE
+    unadjusted_impaired <- scores$unadjusted_at_risk %in% TRUE
+    adjusted_impaired <- scores$adjusted_at_risk %in% TRUE
   }
 
   data.frame(
     subjects_scored = nrow(scores),
-    any_cutoff_positive = sum((unadjusted_positive | adjusted_positive) & !unable),
-    both_cutoffs_positive = sum((unadjusted_positive & adjusted_positive) & !unable),
-    discordant = sum(xor(unadjusted_positive, adjusted_positive) & !unable),
+    any_impaired_score = sum((unadjusted_impaired | adjusted_impaired) & !unable),
+    both_scores_impaired = sum((unadjusted_impaired & adjusted_impaired) & !unable),
+    discordant = sum(xor(unadjusted_impaired, adjusted_impaired) & !unable),
     unable_to_calculate = sum(unable),
     check.names = FALSE
   )
@@ -191,9 +205,9 @@ format_score_results_for_display <- function(scores) {
 
   data.frame(
     "Subject ID" = scores$participant_id,
-    "Unadjusted 45 mg/dL score (cutoff >= 66.5)" = round(scores$unadjusted_45_sum, 2),
-    "Adjusted 45-vs-90 score (cutoff >= 25)" = round(scores$adjusted_45_vs_90_sum, 2),
-    "Risk status" = scores$overall_group,
+    "Unadjusted 45 mg/dL score (NAH threshold >= 66.5)" = round(scores$unadjusted_45_sum, 2),
+    "Adjusted 45-vs-90 score (NAH threshold >= 25)" = round(scores$adjusted_45_vs_90_sum, 2),
+    "Awareness status" = scores$overall_group,
     check.names = FALSE
   )
 }
