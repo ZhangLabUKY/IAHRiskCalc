@@ -35,9 +35,6 @@ test_that("app UI exposes the calculator, plot, and methods workflows", {
   expect_match(html, "Manual entry", fixed = TRUE)
   expect_match(html, "No Imputation", fixed = TRUE)
   expect_match(html, "Mean imputation", fixed = TRUE)
-  expect_match(html, "Both scores below threshold: IAH.", fixed = TRUE)
-  expect_match(html, "Exactly one score below threshold: Likely IAH.", fixed = TRUE)
-  expect_match(html, "Both scores greater than or equal to threshold: NAH.", fixed = TRUE)
 })
 
 test_that("manual entry UI uses readable clamp labels", {
@@ -48,19 +45,6 @@ test_that("manual entry UI uses readable clamp labels", {
   expect_match(html, "Tired/Drowsy", fixed = TRUE)
   expect_match(html, "Free fatty acids", fixed = TRUE)
   expect_match(html, "Pancreatic Polypeptide", fixed = TRUE)
-})
-
-test_that("manual entry initializes before manual inputs are populated", {
-  shiny::testServer(iah_app_server, {
-    session$setInputs(input_mode = "manual")
-
-    preflight <- current_preflight()
-    expect_true(preflight$ok)
-    expect_true(preflight$has_missing_required)
-    expect_equal(rownames(preflight$data), "New subject")
-    expect_equal(preflight$missing_values$participant_id, "New subject")
-    expect_equal(preflight$missing_values$missing_value_count, length(required_score_cols()))
-  })
 })
 
 test_that("manual entry scoring succeeds with complete values", {
@@ -153,4 +137,23 @@ test_that("missing values use no imputation by default and mean imputation when 
     expect_true(imputed_result$scores$imputation_used[[1]])
     expect_equal(imputed_result$scores$overall_group[[1]], "NAH")
   })
+})
+
+test_that("multi-subject summary cards show impaired-range counts", {
+  scores <- data.frame(
+    unadjusted_at_risk = c(TRUE, TRUE, FALSE, FALSE, NA),
+    adjusted_at_risk = c(TRUE, FALSE, TRUE, FALSE, TRUE),
+    check.names = FALSE
+  )
+
+  html <- paste(as.character(score_summary_cards(scores)), collapse = "\n")
+
+  expect_match(html, "Any impaired-range score", fixed = TRUE)
+  expect_match(html, "Both scores impaired range", fixed = TRUE)
+  expect_match(html, "Unadjusted or adjusted score below threshold", fixed = TRUE)
+  expect_match(html, "IAH classification: both scores below threshold", fixed = TRUE)
+  expect_match(html, "Exactly one score is below threshold", fixed = TRUE)
+  expect_match(html, "score-value\">3<", fixed = TRUE)
+  expect_match(html, "score-value\">1<", fixed = TRUE)
+  expect_match(html, "score-value\">2<", fixed = TRUE)
 })

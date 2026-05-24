@@ -144,7 +144,7 @@ single_score_cards <- function(score) {
       div(
         class = "score-meta",
         paste(
-          "Mixed threshold result:",
+          "Single cutoff positive:",
           ifelse(isTRUE(score$discordant_flag), "Yes", "No")
         )
       )
@@ -221,7 +221,7 @@ iah_app_ui <- function() {
             )
           ),
           uiOutput("missing_mode_ui"),
-          actionButton("calculate", "Calculate awareness status", class = "btn-primary")
+          actionButton("calculate", "Calculate risk", class = "btn-primary")
         ),
         div(
           class = "workflow-main",
@@ -290,7 +290,7 @@ iah_app_ui <- function() {
         class = "methods",
         h3("Purpose and Inputs"),
         p(
-          "This app supports research workflows for classifying clamp-based impaired awareness of hypoglycemia (IAH) status from hyperinsulinemic clamp response data. Subjects can be scored from an uploaded clamp file or from manual entry."
+          "This app supports research workflows for calculating impaired awareness of hypoglycemia (IAH) risk from hyperinsulinemic clamp response data. Subjects can be scored from an uploaded clamp file or from manual entry."
         ),
         p(
           "The risk calculation uses required response values measured at 45 and 90 mg/dL. Uploaded data become the working dataset for the current app session and are also used for plots, downloads, and mean imputation when selected."
@@ -316,7 +316,7 @@ iah_app_ui <- function() {
         ),
         h3("Missing Data"),
         p(
-          "Required 45 and 90 mg/dL values must be available for both awareness scores. When missing required values are detected, the Calculator offers two options:"
+          "Required 45 and 90 mg/dL values must be available for both risk scores. When missing required values are detected, the Calculator offers two options:"
         ),
         tags$ul(
           tags$li(
@@ -341,11 +341,11 @@ iah_app_ui <- function() {
         ),
         h3("Cutoffs and Labels"),
         tags$ul(
-          tags$li("Unadjusted score threshold for normal awareness: greater than or equal to 66.5."),
-          tags$li("Adjusted score threshold for normal awareness: greater than or equal to 25."),
-          tags$li("Both scores below threshold: IAH."),
-          tags$li("Exactly one score below threshold: Likely IAH."),
-          tags$li("Both scores greater than or equal to threshold: NAH.")
+          tags$li("Unadjusted score cutoff: greater than or equal to 66.5."),
+          tags$li("Adjusted score cutoff: greater than or equal to 25."),
+          tags$li("Both scores at or above cutoff: IAH."),
+          tags$li("Exactly one score at or above cutoff: Likely IAH."),
+          tags$li("Both scores below cutoff: NAH.")
         ),
         h3("Plots and Exports"),
         p(
@@ -408,20 +408,14 @@ iah_app_server <- function(input, output, session) {
     values <- list()
     for (var in CLAMP_VARIABLES) {
       for (level in c(90, 45)) {
-        value <- input[[manual_input_id(
+        values[[paste0(var, "_", level)]] <- input[[manual_input_id(
           var,
           level
         )]]
-        values[[paste0(var, "_", level)]] <- value %||% NA_real_
       }
     }
     df <- as.data.frame(values, check.names = FALSE)
-    subject_id <- input$manual_participant_id %||% "New subject"
-    subject_id <- trimws(subject_id)
-    if (!nzchar(subject_id)) {
-      subject_id <- "New subject"
-    }
-    rownames(df) <- subject_id
+    rownames(df) <- input$manual_participant_id
     df
   })
 
