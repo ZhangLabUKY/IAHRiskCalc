@@ -11,8 +11,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Welcome to IAHRiskCalc">
-<meta name="description" content="Shiny application for calculating clamp-based impaired awareness of hypoglycemia risk scores from uploaded or manually entered physiological and symptom response data.">
-<meta property="og:description" content="Shiny application for calculating clamp-based impaired awareness of hypoglycemia risk scores from uploaded or manually entered physiological and symptom response data.">
+<meta name="description" content="Shiny application for classifying clamp-based impaired awareness of hypoglycemia status from uploaded or manually entered physiological and symptom response data.">
+<meta property="og:description" content="Shiny application for classifying clamp-based impaired awareness of hypoglycemia status from uploaded or manually entered physiological and symptom response data.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -63,7 +63,7 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>The goal of IAHRiskCalc is to calculate clamp-based impaired awareness of hypoglycemia (IAH) risk scores from symptom and physiological response values collected at 45 and 90 mg/dL.</p>
+<p>The goal of IAHRiskCalc is to classify clamp-based impaired awareness of hypoglycemia (IAH) status from symptom and physiological response values collected at 45 and 90 mg/dL.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -81,7 +81,8 @@
 <li>Applies log2 transformation to physiological variables before scoring.</li>
 <li>Requires confirmation before non-positive physiological values are replaced with an offset equal to 80% of that variable’s minimum positive raw value in the current scoring dataset.</li>
 <li>Calculates an unadjusted 45 mg/dL score and an adjusted 45-vs-90 score using all 20 variables.</li>
-<li>Labels results as <code>IAH</code>, <code>Likely IAH</code>, <code>NAH</code>, or unable to calculate when required values are missing.</li>
+<li>Classifies scores greater than or equal to their thresholds as normal awareness (<code>NAH</code>) and scores below threshold as impaired awareness.</li>
+<li>Labels results as <code>IAH</code> when both scores are below threshold, <code>Likely IAH</code> when exactly one score is below threshold, <code>NAH</code> when both scores meet or exceed threshold, or unable to calculate when required values are missing.</li>
 <li>Provides interactive Plotly plots and downloadable CSV/figure exports.</li>
 </ul>
 </div>

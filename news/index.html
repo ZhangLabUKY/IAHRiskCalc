@@ -47,7 +47,7 @@
 <li>Added upload parsing for canonical wide files and grouped clamp workbook layouts.</li>
 <li>Added preprocessing for physiological responses, including log2 transformation and confirmed offsets for non-positive values using 80% of the variable-specific minimum positive raw value.</li>
 <li>Added missing-data handling with <code>No Imputation</code> and <code>Mean imputation</code> options.</li>
-<li>Added unadjusted 45 mg/dL and adjusted 45-vs-90 score calculation with <code>IAH</code>, <code>Likely IAH</code>, <code>NAH</code>, and unable-to-calculate result labels.</li>
+<li>Added unadjusted 45 mg/dL and adjusted 45-vs-90 score calculation with awareness labels: both scores below threshold classify as <code>IAH</code>, exactly one score below threshold classifies as <code>Likely IAH</code>, and both scores at or above threshold classify as <code>NAH</code>.</li>
 <li>Added interactive Plotly profile and contribution figures, plus static figure exports for PDF, TIFF, SVG, PNG, and JPEG workflows.</li>
 <li>Added Calculator CSV export, polished warning/result table labels, and refreshed Methods documentation.</li>
 <li>Added a clinical research visual theme with UK-blue accents and cleaner Shiny controls.</li>

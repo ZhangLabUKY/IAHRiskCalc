@@ -1,8 +1,8 @@
 # IAHRiskCalc
 
-The goal of IAHRiskCalc is to calculate clamp-based impaired awareness
-of hypoglycemia (IAH) risk scores from symptom and physiological
-response values collected at 45 and 90 mg/dL.
+The goal of IAHRiskCalc is to classify clamp-based impaired awareness of
+hypoglycemia (IAH) status from symptom and physiological response values
+collected at 45 and 90 mg/dL.
 
 ## Installation
 
@@ -26,8 +26,12 @@ pak::pak("ZhangLabUKY/IAHRiskCalc")
   positive raw value in the current scoring dataset.
 - Calculates an unadjusted 45 mg/dL score and an adjusted 45-vs-90 score
   using all 20 variables.
-- Labels results as `IAH`, `Likely IAH`, `NAH`, or unable to calculate
-  when required values are missing.
+- Classifies scores greater than or equal to their thresholds as normal
+  awareness (`NAH`) and scores below threshold as impaired awareness.
+- Labels results as `IAH` when both scores are below threshold,
+  `Likely IAH` when exactly one score is below threshold, `NAH` when
+  both scores meet or exceed threshold, or unable to calculate when
+  required values are missing.
 - Provides interactive Plotly plots and downloadable CSV/figure exports.
 
 ## Run locally

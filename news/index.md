@@ -14,7 +14,9 @@
 - Added missing-data handling with `No Imputation` and `Mean imputation`
   options.
 - Added unadjusted 45 mg/dL and adjusted 45-vs-90 score calculation with
-  `IAH`, `Likely IAH`, `NAH`, and unable-to-calculate result labels.
+  awareness labels: both scores below threshold classify as `IAH`,
+  exactly one score below threshold classifies as `Likely IAH`, and both
+  scores at or above threshold classify as `NAH`.
 - Added interactive Plotly profile and contribution figures, plus static
   figure exports for PDF, TIFF, SVG, PNG, and JPEG workflows.
 - Added Calculator CSV export, polished warning/result table labels, and
