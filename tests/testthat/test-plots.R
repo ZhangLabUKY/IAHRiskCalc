@@ -17,6 +17,38 @@ test_that("plot helpers return Plotly widgets", {
   expect_s3_class(plot_unadjusted_contributions(df, vars = "Heart"), "plotly")
 })
 
+test_that("interactive plot axes use dark bold titles and readable ticks", {
+  df <- as.data.frame(as.list(stats::setNames(rep(1, length(required_score_cols())), required_score_cols())),
+                      check.names = FALSE)
+  df$Heart_45 <- 6
+  df$Heart_90 <- 2
+
+  profile <- plot_response_profile(df, vars = "Heart")
+  adjusted <- plot_adjusted_contributions(df, vars = "Heart")
+  unadjusted <- plot_unadjusted_contributions(df, vars = "Heart")
+  profile_layout <- profile$x$layoutAttrs[[1]]
+  adjusted_layout <- adjusted$x$layoutAttrs[[1]]
+  unadjusted_layout <- unadjusted$x$layoutAttrs[[1]]
+
+  expect_match(profile_layout$xaxis$title$text, "<b>", fixed = TRUE)
+  expect_equal(profile_layout$xaxis$title$font$color, "#111827")
+  expect_equal(profile_layout$yaxis$title$font$color, "#111827")
+  expect_equal(adjusted_layout$xaxis$title$font$color, "#111827")
+  expect_equal(adjusted_layout$yaxis$tickfont$color, "#111827")
+  expect_equal(unadjusted_layout$xaxis$title$font$color, "#111827")
+  expect_equal(unadjusted_layout$yaxis$tickfont$color, "#111827")
+})
+
+test_that("static plot theme uses dark bold axis styling", {
+  theme <- static_plot_text_theme()
+
+  expect_equal(theme$axis.title.x$face, "bold")
+  expect_equal(theme$axis.title.y$face, "bold")
+  expect_equal(theme$axis.title.x$colour %||% theme$axis.title.x$color, "#111827")
+  expect_equal(theme$axis.title.y$colour %||% theme$axis.title.y$color, "#111827")
+  expect_equal(theme$axis.text$colour %||% theme$axis.text$color, "#111827")
+})
+
 test_that("static plot export helpers create requested files", {
   df <- as.data.frame(as.list(stats::setNames(rep(1, length(required_score_cols())), required_score_cols())),
                       check.names = FALSE)

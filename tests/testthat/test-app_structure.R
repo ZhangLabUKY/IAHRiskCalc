@@ -123,6 +123,42 @@ test_that("manual scoring stores profile state for plot workflows", {
   })
 })
 
+test_that("single-subject cards use full awareness wording and risk gauge", {
+  iah_score <- data.frame(
+    primary_score = 16,
+    primary_cutoff = 25,
+    primary_impaired_awareness = TRUE,
+    primary_cutoff_result = "Below cutoff: IAH",
+    overall_group = "IAH",
+    check.names = FALSE
+  )
+  nah_score <- iah_score
+  nah_score$primary_score <- 30
+  nah_score$primary_impaired_awareness <- FALSE
+  nah_score$primary_cutoff_result <- "Meets cutoff: NAH"
+  nah_score$overall_group <- "NAH"
+  unable_score <- iah_score
+  unable_score$primary_score <- NA_real_
+  unable_score$primary_cutoff <- NA_real_
+  unable_score$primary_impaired_awareness <- NA
+  unable_score$primary_cutoff_result <- "Unable to calculate"
+  unable_score$overall_group <- "Unable to calculate; missing required values"
+
+  iah_html <- paste(as.character(single_score_cards(iah_score)), collapse = "\n")
+  nah_html <- paste(as.character(single_score_cards(nah_score)), collapse = "\n")
+  unable_html <- paste(
+    as.character(single_score_cards(unable_score)),
+    collapse = "\n"
+  )
+
+  expect_match(iah_html, "Impaired awareness of hypoglycemia", fixed = TRUE)
+  expect_match(nah_html, "Normal awareness of hypoglycemia", fixed = TRUE)
+  expect_match(iah_html, "IAH Risk Prediction", fixed = TRUE)
+  expect_match(iah_html, "risk-gauge iah", fixed = TRUE)
+  expect_match(nah_html, "risk-gauge nah", fixed = TRUE)
+  expect_match(unable_html, "risk-gauge unknown", fixed = TRUE)
+})
+
 test_that("upload scoring stores uploaded data for plot workflows", {
   path <- write_wide_csv_fixture()
 

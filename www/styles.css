@@ -241,7 +241,7 @@ body {
 
 .score-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -257,7 +257,8 @@ body {
   color: var(--iah-blue-dark);
   margin-top: 0;
   margin-bottom: 8px;
-  font-size: 16px;
+  font-size: 17px;
+  font-weight: 800;
 }
 
 .score-card.wide {
@@ -277,7 +278,10 @@ body {
 
 .score-meta {
   color: var(--iah-muted);
-  margin-top: 4px;
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.35;
 }
 
 .score-flag {
@@ -297,8 +301,95 @@ body {
 
 .classification {
   color: var(--iah-blue-dark);
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 21px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.risk-prediction-card {
+  text-align: center;
+}
+
+.risk-gauge {
+  --needle-angle: 0deg;
+  margin: 6px auto 0;
+  max-width: 190px;
+}
+
+.risk-gauge.nah {
+  --needle-angle: -52deg;
+}
+
+.risk-gauge.iah {
+  --needle-angle: 52deg;
+}
+
+.risk-gauge.unknown {
+  --needle-angle: 0deg;
+}
+
+.risk-gauge-arc {
+  position: relative;
+  width: 180px;
+  max-width: 100%;
+  height: 90px;
+  margin: 0 auto;
+  overflow: hidden;
+  border-radius: 180px 180px 0 0;
+  background: conic-gradient(
+    from 270deg at 50% 100%,
+    #2f9e44 0deg 62deg,
+    #f2c94c 62deg 118deg,
+    #d64545 118deg 180deg,
+    transparent 180deg 360deg
+  );
+}
+
+.risk-gauge-arc::after {
+  content: "";
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: 0;
+  height: 62px;
+  border-radius: 124px 124px 0 0;
+  background: #fbfdff;
+}
+
+.risk-gauge-needle {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  z-index: 2;
+  width: 4px;
+  height: 72px;
+  background: #172033;
+  border-radius: 999px;
+  transform: translateX(-50%) rotate(var(--needle-angle));
+  transform-origin: 50% 100%;
+  box-shadow: 0 1px 2px rgba(23, 32, 51, 0.28);
+}
+
+.risk-gauge-knob {
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  z-index: 3;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #172033;
+  transform: translateX(-50%);
+  box-shadow: 0 1px 3px rgba(23, 32, 51, 0.3);
+}
+
+.risk-gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  color: var(--iah-ink);
+  font-size: 15px;
+  font-weight: 800;
 }
 
 .app-message {

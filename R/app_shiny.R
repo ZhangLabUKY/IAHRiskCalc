@@ -74,6 +74,55 @@ summary_card <- function(title, value, meta = NULL, class = "") {
   )
 }
 
+awareness_display_label <- function(value) {
+  value <- as.character(value[[1]])
+  if (is.na(value)) {
+    return("Unable to calculate")
+  }
+  if (value == "IAH") {
+    return("Impaired awareness of hypoglycemia")
+  }
+  if (value == "NAH") {
+    return("Normal awareness of hypoglycemia")
+  }
+  value
+}
+
+risk_prediction_class <- function(score) {
+  group <- as.character(score$overall_group[[1]])
+  if (is.na(score$primary_score) || is.na(group)) {
+    return("unknown")
+  }
+  if (group == "IAH") {
+    return("iah")
+  }
+  if (group == "NAH") {
+    return("nah")
+  }
+  "unknown"
+}
+
+risk_prediction_card <- function(score) {
+  gauge_class <- risk_prediction_class(score)
+  div(
+    class = "score-card risk-prediction-card",
+    h4("IAH Risk Prediction"),
+    div(
+      class = paste("risk-gauge", gauge_class),
+      div(
+        class = "risk-gauge-arc",
+        div(class = "risk-gauge-needle"),
+        div(class = "risk-gauge-knob")
+      ),
+      div(
+        class = "risk-gauge-labels",
+        span("Low"),
+        span("High")
+      )
+    )
+  )
+}
+
 score_summary_cards <- function(scores) {
   counts <- score_summary_counts(scores)
 
@@ -138,7 +187,7 @@ single_score_cards <- function(score) {
     div(
       class = "score-card wide",
       h4("Overall Classification"),
-      div(class = "classification", score$overall_group),
+      div(class = "classification", awareness_display_label(score$overall_group)),
       div(
         class = "score-meta",
         ifelse(
@@ -147,7 +196,8 @@ single_score_cards <- function(score) {
           "Scores at or above cutoff classify as NAH."
         )
       )
-    )
+    ),
+    risk_prediction_card(score)
   )
 }
 

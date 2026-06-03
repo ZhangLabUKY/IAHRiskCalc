@@ -43,6 +43,17 @@ empty_plotly_message <- function(message) {
     )
 }
 
+plotly_axis_title <- function(text, size = 15) {
+  list(
+    text = paste0("<b>", text, "</b>"),
+    font = list(size = size, color = "#111827")
+  )
+}
+
+plotly_axis_tickfont <- function(size = 13) {
+  list(size = size, color = "#111827")
+}
+
 plot_response_profile <- function(row, vars = CLAMP_VARIABLES) {
   data <- profile_long(row, vars)
 
@@ -93,17 +104,17 @@ plot_response_profile <- function(row, vars = CLAMP_VARIABLES) {
       font = list(size = 18)
     ),
     xaxis = list(
-      title = list(text = "Glucose level (mg/dL)", font = list(size = 15)),
+      title = plotly_axis_title("Glucose level (mg/dL)"),
       autorange = "reversed",
       tickmode = "array",
       tickvals = rev(CLAMP_GLUCOSE_LEVELS),
       zeroline = FALSE,
-      tickfont = list(size = 13)
+      tickfont = plotly_axis_tickfont()
     ),
     yaxis = list(
-      title = list(text = "Response value used for scoring", font = list(size = 15)),
+      title = plotly_axis_title("Response value used for scoring"),
       zeroline = TRUE,
-      tickfont = list(size = 13)
+      tickfont = plotly_axis_tickfont()
     ),
     legend = list(
       orientation = "h",
@@ -161,16 +172,16 @@ plot_adjusted_contributions <- function(row, vars = CLAMP_VARIABLES) {
         font = list(size = 18)
       ),
       xaxis = list(
-        title = list(text = "Response contribution", font = list(size = 15)),
+        title = plotly_axis_title("Response contribution"),
         zeroline = TRUE,
         zerolinecolor = "#555555",
-        tickfont = list(size = 13)
+        tickfont = plotly_axis_tickfont()
       ),
       yaxis = list(
         title = "",
         categoryorder = "array",
         categoryarray = contributions$label,
-        tickfont = list(size = 13)
+        tickfont = plotly_axis_tickfont()
       ),
       margin = list(l = 155, r = 25, t = 55, b = 70),
       showlegend = FALSE
@@ -215,16 +226,16 @@ plot_unadjusted_contributions <- function(row, vars = CLAMP_VARIABLES) {
         font = list(size = 18)
       ),
       xaxis = list(
-        title = list(text = "Response contribution", font = list(size = 15)),
+        title = plotly_axis_title("Response contribution"),
         zeroline = TRUE,
         zerolinecolor = "#555555",
-        tickfont = list(size = 13)
+        tickfont = plotly_axis_tickfont()
       ),
       yaxis = list(
         title = "",
         categoryorder = "array",
         categoryarray = contributions$label,
-        tickfont = list(size = 13)
+        tickfont = plotly_axis_tickfont()
       ),
       margin = list(l = 155, r = 25, t = 55, b = 70),
       showlegend = FALSE
@@ -248,7 +259,14 @@ static_plot_text_theme <- function() {
       size = ggplot2::rel(1.2)
     ),
     axis.title = ggplot2::element_text(size = ggplot2::rel(1.05)),
-    axis.text = ggplot2::element_text(size = ggplot2::rel(0.95)),
+    axis.title.x = ggplot2::element_text(face = "bold", color = "#111827"),
+    axis.title.y = ggplot2::element_text(face = "bold", color = "#111827"),
+    axis.text = ggplot2::element_text(
+      size = ggplot2::rel(0.95),
+      color = "#111827"
+    ),
+    axis.line = ggplot2::element_line(color = "#111827", linewidth = 0.35),
+    axis.ticks = ggplot2::element_line(color = "#111827", linewidth = 0.35),
     legend.title = ggplot2::element_text(
       face = "bold",
       size = ggplot2::rel(1.0)
@@ -260,7 +278,10 @@ static_plot_text_theme <- function() {
 static_contribution_text_theme <- function() {
   static_plot_text_theme() +
     ggplot2::theme(
-      axis.text.y = ggplot2::element_text(size = ggplot2::rel(0.92)),
+      axis.text.y = ggplot2::element_text(
+        size = ggplot2::rel(0.92),
+        color = "#111827"
+      ),
       plot.margin = ggplot2::margin(12, 18, 24, 16)
     )
 }

@@ -4,5 +4,6 @@ utils::globalVariables(c(
   "glucose",
   "label",
   "value",
-  "value_45"
+  "value_45",
+  "span"
 ))

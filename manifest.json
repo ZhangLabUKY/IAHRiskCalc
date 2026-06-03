@@ -3159,10 +3159,10 @@
       "checksum": "db561c4642a30867802f293be0c294df"
     },
     "dev_notes/PROGRESS.md": {
-      "checksum": "2861213304d3b44a627aeb22d7c46319"
+      "checksum": "b8bada8a11da83553c7d659add9fee87"
     },
     "dev_notes/README.md": {
-      "checksum": "d272d47b4c16c289aa0d48fa37ada8d4"
+      "checksum": "f9722fa0f6e53b32fc67eab9e0c5cf78"
     },
     "docs/404.html": {
       "checksum": "85953a02b2b5444c83b1c639f2a75680"
@@ -3312,13 +3312,13 @@
       "checksum": "8a3146ed446226269a79368c4b3b6fed"
     },
     "R/app_shiny.R": {
-      "checksum": "e9315480f9ba9a7aeb03834a07818f0d"
+      "checksum": "e71796510d51e42115e34199bbd85b17"
     },
     "R/calc_scores.R": {
       "checksum": "ac63e7ab6603b6d091992dbebc022da5"
     },
     "R/globals.R": {
-      "checksum": "475f884e059140a405d1233dd9da46d3"
+      "checksum": "4e1e05c19cfc6660a2d4419eda1bdf01"
     },
     "R/import_uploads.R": {
       "checksum": "7fbf5a4b38367bf1940eeac121ec8509"
@@ -3330,7 +3330,7 @@
       "checksum": "d9a638b55fbeb187d6f613d9cfb7ca09"
     },
     "R/plots.R": {
-      "checksum": "90fac07a4f23f6e890af6b6a7d57f7d1"
+      "checksum": "18c1a673a67e81692d53a01260e84c11"
     },
     "R/preflight.R": {
       "checksum": "ea3229de5537cf11edb8b141edd56929"
@@ -3375,7 +3375,7 @@
       "checksum": "421a6c7e00ec881771a4f86af60ee8bd"
     },
     "tests/testthat/test-app_structure.R": {
-      "checksum": "24e98ee95d58edfde1ef27e2aee9544f"
+      "checksum": "d0f7280f451eedd32c45213263944ea5"
     },
     "tests/testthat/test-calc_scores.R": {
       "checksum": "3cf3b4ae472ee847645779fa76f3f3bb"
@@ -3384,7 +3384,7 @@
       "checksum": "7885e7f6ec69bd798591f21b9b0678f3"
     },
     "tests/testthat/test-plots.R": {
-      "checksum": "d08f65ec24fc80018ebdad4e319c7915"
+      "checksum": "1195845a923487db42c50e2b2cad7542"
     },
     "tests/testthat/test-preflight.R": {
       "checksum": "7b89119f9e18d0e1401d027700d6cc15"
@@ -3393,7 +3393,7 @@
       "checksum": "f7e8db6c5838aad8724553210efe6e1d"
     },
     "www/styles.css": {
-      "checksum": "53c5e50b1fab075c23548e754d3f8d51"
+      "checksum": "f8e415220657875c91013e7381cc58b4"
     }
   },
   "users": null
