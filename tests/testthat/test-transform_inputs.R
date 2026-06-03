@@ -54,6 +54,74 @@ test_that("confirmed non-positive physiological values use per-variable minimum-
   expect_equal(transformed$data$Cortisol_45[[2]], log2(5))
 })
 
+test_that("paired manual offset uses same analyte 45 and 90 positive anchors", {
+  df <- as.data.frame(
+    as.list(stats::setNames(rep(1, length(required_score_cols())), required_score_cols())),
+    check.names = FALSE
+  )
+  df$FreeFattyAcids_90 <- 0
+  df$FreeFattyAcids_45 <- 0.1
+  df$Insulin_45 <- -1
+  df$Insulin_90 <- 10
+
+  transformed <- transform_physiological_responses(
+    df,
+    allow_offset = TRUE,
+    offset_method = "paired"
+  )
+
+  expect_true(transformed$ok)
+  expect_equal(
+    transformed$offset_fields$offset_value[
+      transformed$offset_fields$variable == "FreeFattyAcids_90"
+    ],
+    0.08
+  )
+  expect_equal(
+    transformed$offset_fields$offset_value[
+      transformed$offset_fields$variable == "Insulin_45"
+    ],
+    8
+  )
+  expect_equal(transformed$data$FreeFattyAcids_90[[1]], log2(0.08))
+  expect_equal(transformed$data$Insulin_45[[1]], log2(8))
+})
+
+test_that("paired manual offset still fails when an analyte pair has no positive anchor", {
+  df <- as.data.frame(
+    as.list(stats::setNames(rep(1, length(required_score_cols())), required_score_cols())),
+    check.names = FALSE
+  )
+  df$Glucagon_90 <- 0
+  df$Glucagon_45 <- -1
+
+  transformed <- transform_physiological_responses(
+    df,
+    allow_offset = TRUE,
+    offset_method = "paired"
+  )
+
+  expect_false(transformed$ok)
+  expect_false(transformed$needs_offset_confirmation)
+  expect_match(transformed$message, "no positive raw values")
+  expect_match(transformed$message, "Glucagon_90")
+  expect_match(transformed$message, "Glucagon_45")
+})
+
+test_that("default upload-style offset remains column anchored", {
+  df <- as.data.frame(
+    as.list(stats::setNames(rep(1, length(required_score_cols())), required_score_cols())),
+    check.names = FALSE
+  )
+  df$FreeFattyAcids_90 <- 0
+  df$FreeFattyAcids_45 <- 0.1
+
+  transformed <- transform_physiological_responses(df, allow_offset = TRUE)
+
+  expect_false(transformed$ok)
+  expect_match(transformed$message, "FreeFattyAcids_90")
+})
+
 test_that("non-positive physiological values fail clearly when their variable has no positive anchor", {
   df <- as.data.frame(
     as.list(stats::setNames(rep(1, length(required_score_cols())), required_score_cols())),

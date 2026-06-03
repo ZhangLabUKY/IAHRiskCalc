@@ -10,8 +10,10 @@ physiological_cols <- function(
 physiological_offset_fields <- function(
   df,
   cols = intersect(physiological_cols(), names(df)),
-  offset_multiplier = PHYSIOLOGICAL_OFFSET_MULTIPLIER
+  offset_multiplier = PHYSIOLOGICAL_OFFSET_MULTIPLIER,
+  offset_method = c("column", "paired")
 ) {
+  offset_method <- match.arg(offset_method)
   if (length(cols) == 0 || nrow(df) == 0) {
     return(data.frame(
       participant_id = character(0),
@@ -23,7 +25,12 @@ physiological_offset_fields <- function(
   }
 
   df <- coerce_clamp_numeric(df, cols)
-  offset_values <- physiological_offset_values(df, cols, offset_multiplier)
+  offset_values <- physiological_offset_values(
+    df,
+    cols,
+    offset_multiplier,
+    offset_method
+  )
   out <- data.frame(
     participant_id = character(0),
     variable = character(0),
@@ -55,8 +62,10 @@ physiological_offset_fields <- function(
 physiological_offset_values <- function(
   df,
   cols = intersect(physiological_cols(), names(df)),
-  offset_multiplier = PHYSIOLOGICAL_OFFSET_MULTIPLIER
+  offset_multiplier = PHYSIOLOGICAL_OFFSET_MULTIPLIER,
+  offset_method = c("column", "paired")
 ) {
+  offset_method <- match.arg(offset_method)
   if (length(cols) == 0) {
     return(stats::setNames(numeric(0), character(0)))
   }
@@ -64,6 +73,15 @@ physiological_offset_values <- function(
   df <- coerce_clamp_numeric(df, cols)
   stats::setNames(vapply(cols, function(col) {
     values <- df[[col]]
+    if (identical(offset_method, "paired")) {
+      pieces <- strsplit(col, "_", fixed = TRUE)[[1]]
+      paired_cols <- intersect(
+        paste0(pieces[[1]], "_", c(90, 45)),
+        names(df)
+      )
+      values <- unlist(df[, paired_cols, drop = FALSE], use.names = FALSE)
+      values <- suppressWarnings(as.numeric(values))
+    }
     positive_values <- values[!is.na(values) & values > 0]
     if (length(positive_values) == 0) {
       return(NA_real_)
@@ -75,12 +93,24 @@ physiological_offset_values <- function(
 transform_physiological_responses <- function(
   df,
   allow_offset = FALSE,
-  offset_multiplier = PHYSIOLOGICAL_OFFSET_MULTIPLIER
+  offset_multiplier = PHYSIOLOGICAL_OFFSET_MULTIPLIER,
+  offset_method = c("column", "paired")
 ) {
+  offset_method <- match.arg(offset_method)
   cols <- intersect(physiological_cols(), names(df))
   df <- coerce_clamp_numeric(df, cols)
-  offset_fields <- physiological_offset_fields(df, cols, offset_multiplier)
-  offset_values <- physiological_offset_values(df, cols, offset_multiplier)
+  offset_fields <- physiological_offset_fields(
+    df,
+    cols,
+    offset_multiplier,
+    offset_method
+  )
+  offset_values <- physiological_offset_values(
+    df,
+    cols,
+    offset_multiplier,
+    offset_method
+  )
 
   if (nrow(offset_fields) > 0 && any(is.na(offset_fields$offset_value))) {
     missing_offset_cols <- unique(offset_fields$variable[is.na(offset_fields$offset_value)])

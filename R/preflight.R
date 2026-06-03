@@ -35,13 +35,18 @@ apply_subject_id_selection_to_preflight <- function(preflight, selected_key = NU
   preflight_normalized(apply_subject_ids_to_normalized(normalized, selected_key))
 }
 
-preflight_manual <- function(df) {
+preflight_manual <- function(df, offset_method = c("column", "paired")) {
+  offset_method <- match.arg(offset_method)
   missing <- missing_required_values(df)
-  offset_fields <- physiological_offset_fields(df)
+  offset_fields <- physiological_offset_fields(df, offset_method = offset_method)
   transform_result <- NULL
 
   if (nrow(offset_fields) == 0) {
-    transform_result <- transform_physiological_responses(df, allow_offset = FALSE)
+    transform_result <- transform_physiological_responses(
+      df,
+      allow_offset = FALSE,
+      offset_method = offset_method
+    )
   }
 
   list(

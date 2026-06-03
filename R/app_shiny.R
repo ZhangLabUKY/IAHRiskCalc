@@ -9,7 +9,18 @@ manual_input_id <- function(var, level) {
   paste0("manual_", var, "_", level)
 }
 
-manual_entry_group_ui <- function(title, vars) {
+manual_entry_value <- function(values, var, level) {
+  field <- paste0(var, "_", level)
+  if (!is.null(values) && field %in% names(values)) {
+    value <- values[[field]]
+    if (!is.null(value) && length(value) > 0 && !is.na(value[[1]])) {
+      return(value[[1]])
+    }
+  }
+  NA_real_
+}
+
+manual_entry_group_ui <- function(title, vars, values = NULL) {
   tagList(
     h4(title),
     div(
@@ -23,13 +34,13 @@ manual_entry_group_ui <- function(title, vars) {
             numericInput(
               manual_input_id(var, 90),
               "90 mg/dL",
-              value = NA,
+              value = manual_entry_value(values, var, 90),
               step = 0.1
             ),
             numericInput(
               manual_input_id(var, 45),
               "45 mg/dL",
-              value = NA,
+              value = manual_entry_value(values, var, 45),
               step = 0.1
             )
           )
@@ -39,16 +50,17 @@ manual_entry_group_ui <- function(title, vars) {
   )
 }
 
-manual_entry_ui <- function() {
+manual_entry_ui <- function(values = NULL) {
   tagList(
     div(
       class = "app-message warn",
       "Enter raw physiological values below. Physiological fields are log2-transformed before scoring."
     ),
-    manual_entry_group_ui("Symptoms", SYMPTOM_VARIABLES),
+    manual_entry_group_ui("Symptoms", SYMPTOM_VARIABLES, values),
     manual_entry_group_ui(
       "Physiological responses",
-      COUNTERREGULATORY_VARIABLES
+      COUNTERREGULATORY_VARIABLES,
+      values
     )
   )
 }
@@ -69,20 +81,25 @@ score_summary_cards <- function(scores) {
     class = "score-grid",
     summary_card("Subjects scored", counts$subjects_scored),
     summary_card(
-      "Any impaired-range score",
-      counts$any_impaired_score,
-      "Unadjusted or adjusted score below threshold",
+      "IAH",
+      counts$impaired_awareness,
+      "Primary score below cutoff",
       "risk-summary"
     ),
     summary_card(
-      "Both scores impaired range",
-      counts$both_scores_impaired,
-      "IAH classification: both scores below threshold"
+      "NAH",
+      counts$normal_awareness,
+      "Primary score meets or exceeds cutoff"
     ),
     summary_card(
-      "Likely IAH",
-      counts$discordant,
-      "Exactly one score is below threshold"
+      "Adjusted method",
+      counts$adjusted_method,
+      "Complete 45 and 90 mg/dL data"
+    ),
+    summary_card(
+      "Unadjusted method",
+      counts$unadjusted_method,
+      "Complete 45 mg/dL data only"
     ),
     summary_card(
       "Unable to calculate",
@@ -93,49 +110,30 @@ score_summary_cards <- function(scores) {
 }
 
 single_score_cards <- function(score) {
+  score_value <- ifelse(
+    is.na(score$primary_score),
+    "Missing",
+    round(score$primary_score, 2)
+  )
+  cutoff_value <- ifelse(
+    is.na(score$primary_cutoff),
+    "Unavailable",
+    round(score$primary_cutoff, 2)
+  )
+  result_class <- ifelse(
+    isTRUE(score$primary_impaired_awareness),
+    "score-flag risk",
+    "score-flag"
+  )
+
   div(
     class = "score-grid",
     div(
       class = "score-card",
-      h4("Unadjusted 45 mg/dL"),
-      div(
-        class = "score-value",
-        ifelse(
-          is.na(score$unadjusted_45_sum),
-          "Missing",
-          round(score$unadjusted_45_sum, 2)
-        )
-      ),
-      div(class = "score-meta", paste("Cutoff:", score$unadjusted_cutoff)),
-      div(
-        class = ifelse(
-          isTRUE(score$unadjusted_at_risk),
-          "score-flag risk",
-          "score-flag"
-        ),
-        status_label(score$unadjusted_at_risk)
-      )
-    ),
-    div(
-      class = "score-card",
-      h4("Adjusted 45-vs-90"),
-      div(
-        class = "score-value",
-        ifelse(
-          is.na(score$adjusted_45_vs_90_sum),
-          "Missing",
-          round(score$adjusted_45_vs_90_sum, 2)
-        )
-      ),
-      div(class = "score-meta", paste("Cutoff:", score$adjusted_cutoff)),
-      div(
-        class = ifelse(
-          isTRUE(score$adjusted_at_risk),
-          "score-flag risk",
-          "score-flag"
-        ),
-        status_label(score$adjusted_at_risk)
-      )
+      h4("Patient Value"),
+      div(class = "score-value", score_value),
+      div(class = "score-meta", paste("Cutoff:", cutoff_value)),
+      div(class = result_class, score$primary_cutoff_result)
     ),
     div(
       class = "score-card wide",
@@ -143,9 +141,10 @@ single_score_cards <- function(score) {
       div(class = "classification", score$overall_group),
       div(
         class = "score-meta",
-        paste(
-          "Single cutoff positive:",
-          ifelse(isTRUE(score$discordant_flag), "Yes", "No")
+        ifelse(
+          is.na(score$primary_score),
+          "Complete 45 mg/dL data are required.",
+          "Scores at or above cutoff classify as NAH."
         )
       )
     )
@@ -191,8 +190,8 @@ iah_app_ui <- function() {
           radioButtons(
             "input_mode",
             NULL,
-            choices = c("Upload file" = "upload", "Manual entry" = "manual"),
-            selected = "upload",
+            choices = c("Manual entry" = "manual", "Upload file" = "upload"),
+            selected = "manual",
             inline = TRUE
           ),
           conditionalPanel(
@@ -240,10 +239,10 @@ iah_app_ui <- function() {
         class = "profile-shell",
         uiOutput("profile_empty_state"),
         conditionalPanel(
-          "output.hasUploadedData",
+          "output.hasProfileData",
           selectInput(
             "profile_participant",
-            "Uploaded subject",
+            "Subject",
             choices = character(0)
           ),
           div(
@@ -265,20 +264,14 @@ iah_app_ui <- function() {
           fluidRow(
             column(
               12,
-              plotly::plotlyOutput("reference_profile_plot", height = 520)
+              uiOutput("profile_plot_section")
             )
           ),
           fluidRow(
             column(
-              6,
+              12,
+              uiOutput("contribution_plot_note"),
               plotly::plotlyOutput("reference_contribution_plot", height = 500)
-            ),
-            column(
-              6,
-              plotly::plotlyOutput(
-                "reference_unadjusted_contribution_plot",
-                height = 500
-              )
             )
           )
         )
@@ -312,20 +305,20 @@ iah_app_ui <- function() {
           "Physiological raw values that are zero or negative cannot be log2-transformed directly. When these values are detected, the app asks for confirmation before scoring."
         ),
         p(
-          "After confirmation, each affected value is set to 80% of the minimum positive raw value for that same physiological variable in the current scoring dataset. If no positive value is available for that variable, scoring stops with a clear transform error."
+          "After confirmation, each affected uploaded value is set to 80% of the minimum positive raw value for that same physiological field in the current scoring dataset. For manual entry, the app uses 80% of the minimum positive value from the same physiological response's 45/90 pair. If no positive value is available from the applicable anchor, scoring stops with a clear transform error."
         ),
         h3("Missing Data"),
         p(
-          "Required 45 and 90 mg/dL values must be available for both risk scores. When missing required values are detected, the Calculator offers two options:"
+          "Complete 45 mg/dL values are required for scoring. Complete paired 90 mg/dL values allow the preferred adjusted score; if 90 mg/dL values are unavailable, the app uses the unadjusted 45 mg/dL score."
         ),
         tags$ul(
           tags$li(
             tags$strong("No Imputation: "),
-            "missing required values remain missing and affected subject scores are reported as unable to calculate."
+            "missing required 45 mg/dL values remain missing and affected subject scores are reported as unable to calculate."
           ),
           tags$li(
             tags$strong("Mean imputation: "),
-            "missing required values are filled with column means from the current uploaded dataset after physiological preprocessing."
+            "missing required 45 mg/dL values are filled with column means from the current uploaded dataset after physiological preprocessing."
           )
         ),
         h3("Risk Scores"),
@@ -341,18 +334,17 @@ iah_app_ui <- function() {
         ),
         h3("Cutoffs and Labels"),
         tags$ul(
-          tags$li("Unadjusted score cutoff: greater than or equal to 66.5."),
-          tags$li("Adjusted score cutoff: greater than or equal to 25."),
-          tags$li("Both scores at or above cutoff: IAH."),
-          tags$li("Exactly one score at or above cutoff: Likely IAH."),
-          tags$li("Both scores below cutoff: NAH.")
+          tags$li("Adjusted scoring is used when complete 45 and 90 mg/dL data are available; its cutoff is 25."),
+          tags$li("Unadjusted scoring is used when complete 45 mg/dL data are available but 90 mg/dL data are unavailable; its cutoff is 66.5."),
+          tags$li("A primary score greater than or equal to its cutoff is classified as NAH."),
+          tags$li("A primary score below its cutoff is classified as IAH.")
         ),
         h3("Plots and Exports"),
         p(
-          "The Plots tab shows interactive Plotly figures for the selected uploaded subject: the clamp response profile, adjusted score contributions, and unadjusted 45 mg/dL score contributions."
+          "The Plots tab shows interactive Plotly figures for the selected uploaded subject: the clamp response profile and the contribution plot matching the score method used for classification."
         ),
         p(
-          "Calculator results can be downloaded as CSV. Figure downloads use static ggplot2 exports: PDF downloads as one combined multi-page file, while TIFF, SVG, PNG, and JPEG downloads are packaged as a zip containing the three figure panels."
+          "Calculator results can be downloaded as CSV. Figure downloads use static ggplot2 exports: PDF downloads as one combined multi-page file, while TIFF, SVG, PNG, and JPEG downloads are packaged as a zip containing the response profile and primary contribution panels."
         ),
         h3("Disclaimer"),
         p(
@@ -367,16 +359,20 @@ iah_app_ui <- function() {
 
 iah_app_server <- function(input, output, session) {
   uploaded_state <- reactiveVal(NULL)
+  profile_state <- reactiveVal(NULL)
   upload_preflight_state <- reactiveVal(NULL)
   last_result <- reactiveVal(NULL)
   offset_confirmed <- reactiveVal(FALSE)
   pending_offset_payload <- reactiveVal(NULL)
+  show_manual_entry <- reactiveVal(TRUE)
+  manual_entry_cache <- reactiveVal(NULL)
 
   observeEvent(input$calculator_file, {
     offset_confirmed(FALSE)
     last_result(NULL)
     pending_offset_payload(NULL)
     uploaded_state(NULL)
+    profile_state(NULL)
     if (!is.null(input$calculator_file)) {
       upload_preflight_state(preflight_upload(
         input$calculator_file$datapath,
@@ -391,6 +387,8 @@ iah_app_server <- function(input, output, session) {
     offset_confirmed(FALSE)
     last_result(NULL)
     pending_offset_payload(NULL)
+    profile_state(NULL)
+    show_manual_entry(TRUE)
   })
 
   observeEvent(
@@ -400,24 +398,60 @@ iah_app_server <- function(input, output, session) {
       last_result(NULL)
       pending_offset_payload(NULL)
       uploaded_state(NULL)
+      profile_state(NULL)
     },
     ignoreInit = TRUE
   )
+
+  manual_scalar_input <- function(id) {
+    value <- input[[id]]
+    if (is.null(value) || length(value) == 0) {
+      return(NA_real_)
+    }
+
+    value <- suppressWarnings(as.numeric(value[[1]]))
+    if (length(value) == 0 || is.na(value)) {
+      NA_real_
+    } else {
+      value
+    }
+  }
+
+  manual_subject_id <- function() {
+    id <- input$manual_participant_id
+    if (is.null(id) || length(id) == 0) {
+      return("New subject")
+    }
+
+    id <- as.character(id[[1]])
+    if (is.na(id) || !nzchar(trimws(id))) {
+      "New subject"
+    } else {
+      id
+    }
+  }
 
   manual_df <- reactive({
     values <- list()
     for (var in CLAMP_VARIABLES) {
       for (level in c(90, 45)) {
-        values[[paste0(var, "_", level)]] <- input[[manual_input_id(
-          var,
-          level
-        )]]
+        values[[paste0(var, "_", level)]] <- manual_scalar_input(
+          manual_input_id(var, level)
+        )
       }
     }
     df <- as.data.frame(values, check.names = FALSE)
-    rownames(df) <- input$manual_participant_id
+    rownames(df) <- manual_subject_id()
     df
   })
+
+  cache_manual_entry <- function() {
+    values <- as.list(manual_df()[1, , drop = TRUE])
+    manual_entry_cache(list(
+      participant_id = manual_subject_id(),
+      values = values
+    ))
+  }
 
   current_preflight <- reactive({
     if (identical(input$input_mode, "upload")) {
@@ -426,7 +460,7 @@ iah_app_server <- function(input, output, session) {
         input$subject_id_column
       ))
     }
-    preflight_manual(manual_df())
+    preflight_manual(manual_df(), offset_method = "paired")
   })
 
   output$subject_id_selector <- renderUI({
@@ -450,7 +484,7 @@ iah_app_server <- function(input, output, session) {
     if (is.null(preflight) || !isTRUE(preflight$has_missing_required)) {
       return(tagList(
         h3("Missing Values"),
-        p(class = "small-note", "No missing required 45/90 values detected.")
+        p(class = "small-note", "No missing required 45 mg/dL values detected.")
       ))
     }
 
@@ -474,9 +508,11 @@ iah_app_server <- function(input, output, session) {
   })
 
   score_dataset <- function(df, reference_df, audit = NULL, source = "upload") {
+    offset_method <- if (identical(source, "manual")) "paired" else "column"
     transform_result <- transform_physiological_responses(
       df,
-      allow_offset = offset_confirmed()
+      allow_offset = offset_confirmed(),
+      offset_method = offset_method
     )
 
     if (!transform_result$ok) {
@@ -601,14 +637,26 @@ iah_app_server <- function(input, output, session) {
         scores = result$scores,
         audit = result$audit
       ))
+    }
+    if (isTRUE(result$ok)) {
+      profile_state(list(
+        df = result$df,
+        scores = result$scores,
+        source = result$source
+      ))
       updateSelectInput(
         session,
         "profile_participant",
-        choices = rownames(result$df)
+        choices = rownames(result$df),
+        selected = rownames(result$df)[[1]]
       )
     }
 
     last_result(result)
+    if (isTRUE(result$ok) && identical(result$source, "manual")) {
+      cache_manual_entry()
+      show_manual_entry(FALSE)
+    }
     result
   }
 
@@ -629,6 +677,14 @@ iah_app_server <- function(input, output, session) {
       req(payload)
       offset_confirmed(TRUE)
       run_payload(payload)
+    },
+    ignoreInit = TRUE
+  )
+
+  observeEvent(
+    input$edit_manual_entry,
+    {
+      show_manual_entry(TRUE)
     },
     ignoreInit = TRUE
   )
@@ -769,14 +825,14 @@ iah_app_server <- function(input, output, session) {
 
   output$manual_entry_section <- renderUI({
     if (
-      !identical(input$input_mode, "manual") || isTRUE(has_successful_result())
+      !identical(input$input_mode, "manual") || !isTRUE(show_manual_entry())
     ) {
       return(NULL)
     }
 
     tagList(
       h3("Manual Entry"),
-      manual_entry_ui()
+      manual_entry_ui(manual_entry_cache()$values)
     )
   })
 
@@ -812,18 +868,30 @@ iah_app_server <- function(input, output, session) {
     result <- current_result()
     req(result, result$ok)
     tagList(
-      h3("Results"),
+      div(
+        class = "results-header",
+        h3("Results"),
+        if (identical(result$source, "manual") && nrow(result$scores) == 1) {
+          actionButton(
+            "edit_manual_entry",
+            "Edit entered data",
+            class = "btn-default"
+          )
+        }
+      ),
       uiOutput("result_cards"),
-      tags$details(
-        class = "detail-panel",
-        open = TRUE,
-        tags$summary("Results"),
-        div(
-          class = "download-row",
-          downloadButton("download_results_csv", "Download CSV")
-        ),
-        uiOutput("results_table_ui")
-      )
+      if (nrow(result$scores) > 1) {
+        tags$details(
+          class = "detail-panel",
+          open = TRUE,
+          tags$summary("Results"),
+          div(
+            class = "download-row",
+            downloadButton("download_results_csv", "Download CSV")
+          ),
+          uiOutput("results_table_ui")
+        )
+      }
     )
   })
 
@@ -857,7 +925,7 @@ iah_app_server <- function(input, output, session) {
 
   output$results_table_ui <- renderUI({
     result <- current_result()
-    req(result, result$ok)
+    req(result, result$ok, nrow(result$scores) > 1)
     if (requireNamespace("DT", quietly = TRUE)) {
       DT::DTOutput("results_table")
     } else {
@@ -868,7 +936,7 @@ iah_app_server <- function(input, output, session) {
   if (requireNamespace("DT", quietly = TRUE)) {
     output$results_table <- DT::renderDT({
       result <- current_result()
-      req(result, result$ok)
+      req(result, result$ok, nrow(result$scores) > 1)
       DT::datatable(
         format_score_results_for_display(result$scores),
         options = list(pageLength = 10, scrollX = TRUE)
@@ -878,7 +946,7 @@ iah_app_server <- function(input, output, session) {
     output$results_table_base <- renderTable(
       {
         result <- current_result()
-        req(result, result$ok)
+        req(result, result$ok, nrow(result$scores) > 1)
         format_score_results_for_display(result$scores)
       },
       striped = TRUE,
@@ -889,7 +957,7 @@ iah_app_server <- function(input, output, session) {
   output$download_results_csv <- downloadHandler(
     filename = function() {
       result <- current_result()
-      req(result, result$ok)
+      req(result, result$ok, nrow(result$scores) > 1)
       ids <- safe_filename_part(paste(
         result$scores$participant_id,
         collapse = "_"
@@ -898,7 +966,7 @@ iah_app_server <- function(input, output, session) {
     },
     content = function(file) {
       result <- current_result()
-      req(result, result$ok)
+      req(result, result$ok, nrow(result$scores) > 1)
       write.csv(
         format_score_results_for_display(result$scores),
         file,
@@ -908,39 +976,82 @@ iah_app_server <- function(input, output, session) {
     }
   )
 
-  output$hasUploadedData <- reactive({
-    !is.null(uploaded_state())
+  output$hasProfileData <- reactive({
+    !is.null(profile_state())
   })
-  outputOptions(output, "hasUploadedData", suspendWhenHidden = FALSE)
+  outputOptions(output, "hasProfileData", suspendWhenHidden = FALSE)
 
   output$profile_empty_state <- renderUI({
-    if (is.null(uploaded_state())) {
+    if (is.null(profile_state())) {
       div(
         class = "app-message warn",
-        "Upload and calculate a dataset in the Calculator tab to view subject response profiles."
+        "Upload or manually enter data, then calculate risk in the Calculator tab to view plots. Response profiles appear when adjusted 45/90 data are available."
+      )
+    }
+  })
+
+  selected_profile_score <- reactive({
+    state <- profile_state()
+    req(state, input$profile_participant)
+    score <- state$scores[
+      state$scores$participant_id == input$profile_participant,
+      ,
+      drop = FALSE
+    ]
+    if (nrow(score) == 0) {
+      return(NULL)
+    }
+    score[1, , drop = FALSE]
+  })
+
+  output$profile_plot_section <- renderUI({
+    score <- selected_profile_score()
+    req(score)
+    if (!identical(score$score_method[[1]], "adjusted_45_vs_90")) {
+      return(div(
+        class = "app-message warn slim",
+        "Response profile is shown only when adjusted 45/90 data are available. This subject was scored with unadjusted 45 mg/dL data, so only the contribution plot is shown."
+      ))
+    }
+    plotly::plotlyOutput("reference_profile_plot", height = 520)
+  })
+
+  output$contribution_plot_note <- renderUI({
+    score <- selected_profile_score()
+    req(score)
+    if (identical(score$score_method[[1]], "adjusted_45_vs_90")) {
+      div(
+        class = "small-note plot-note",
+        "Red bars show variables where the transformed 45 mg/dL response is lower than the transformed 90 mg/dL response, reducing the adjusted total."
+      )
+    } else {
+      div(
+        class = "small-note plot-note",
+        "Red bars show transformed contributions below zero. For physiological values, this can occur after log2 transformation when raw values are between 0 and 1; it does not mean the raw input was invalid."
       )
     }
   })
 
   output$reference_profile_plot <- plotly::renderPlotly({
-    state <- uploaded_state()
+    state <- profile_state()
     req(state, input$profile_participant)
+    score <- selected_profile_score()
+    req(score, identical(score$score_method[[1]], "adjusted_45_vs_90"))
     row <- state$df[input$profile_participant, , drop = FALSE]
     plot_response_profile(row)
   })
 
   output$reference_contribution_plot <- plotly::renderPlotly({
-    state <- uploaded_state()
+    state <- profile_state()
     req(state, input$profile_participant)
     row <- state$df[input$profile_participant, , drop = FALSE]
-    plot_adjusted_contributions(row)
-  })
-
-  output$reference_unadjusted_contribution_plot <- plotly::renderPlotly({
-    state <- uploaded_state()
-    req(state, input$profile_participant)
-    row <- state$df[input$profile_participant, , drop = FALSE]
-    plot_unadjusted_contributions(row)
+    score <- selected_profile_score()
+    method <- if (!is.null(score)) score$score_method[[1]] else "adjusted_45_vs_90"
+    if (identical(method, "unadjusted_45")) {
+      plot_unadjusted_contributions(row)
+    } else {
+      plot_adjusted_contributions(row)
+    }
   })
 
   output$download_profile_figures <- downloadHandler(
@@ -954,13 +1065,15 @@ iah_app_server <- function(input, output, session) {
       }
     },
     content = function(file) {
-      state <- uploaded_state()
+      state <- profile_state()
       req(state, input$profile_participant)
       format <- input$figure_export_format %||% "pdf"
       row <- state$df[input$profile_participant, , drop = FALSE]
+      score <- selected_profile_score()
+      method <- if (!is.null(score)) score$score_method[[1]] else "adjusted_45_vs_90"
 
       if (identical(format, "pdf")) {
-        export_profile_figures_pdf(row, file)
+        export_profile_figures_pdf(row, file, method = method)
         return(invisible(NULL))
       }
 
@@ -975,7 +1088,7 @@ iah_app_server <- function(input, output, session) {
         unlink(export_dir, recursive = TRUE)
       }
       dir.create(export_dir, recursive = TRUE)
-      paths <- export_profile_figure_files(row, export_dir, format)
+      paths <- export_profile_figure_files(row, export_dir, format, method = method)
       zip::zipr(zipfile = file, files = basename(paths), root = export_dir)
     }
   )

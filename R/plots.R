@@ -28,6 +28,7 @@ profile_long <- function(
 empty_plotly_message <- function(message) {
   plotly::plot_ly() |>
     plotly::layout(
+      font = list(size = 14),
       xaxis = list(visible = FALSE),
       yaxis = list(visible = FALSE),
       annotations = list(list(
@@ -36,7 +37,8 @@ empty_plotly_message <- function(message) {
         y = 0.5,
         xref = "paper",
         yref = "paper",
-        showarrow = FALSE
+        showarrow = FALSE,
+        font = list(size = 16)
       ))
     )
 }
@@ -84,24 +86,31 @@ plot_response_profile <- function(row, vars = CLAMP_VARIABLES) {
 
   plotly::layout(
     plot,
-    title = list(text = "Clamp Response Profile by Glucose Level", x = 0.02),
+    font = list(size = 14),
+    title = list(
+      text = "Clamp Response Profile by Glucose Level",
+      x = 0.02,
+      font = list(size = 18)
+    ),
     xaxis = list(
-      title = "Glucose level (mg/dL)",
+      title = list(text = "Glucose level (mg/dL)", font = list(size = 15)),
       autorange = "reversed",
       tickmode = "array",
       tickvals = rev(CLAMP_GLUCOSE_LEVELS),
-      zeroline = FALSE
+      zeroline = FALSE,
+      tickfont = list(size = 13)
     ),
     yaxis = list(
-      title = "Response value used for scoring",
-      zeroline = TRUE
+      title = list(text = "Response value used for scoring", font = list(size = 15)),
+      zeroline = TRUE,
+      tickfont = list(size = 13)
     ),
     legend = list(
       orientation = "h",
       x = 0,
       y = -0.22,
       xanchor = "left",
-      font = list(size = 10)
+      font = list(size = 12)
     ),
     margin = list(l = 70, r = 25, t = 55, b = 130),
     hovermode = "closest"
@@ -139,21 +148,29 @@ plot_adjusted_contributions <- function(row, vars = CLAMP_VARIABLES) {
     marker = list(color = colors),
     hovertemplate = paste(
       "<b>%{y}</b><br>",
-      "45 minus 90 response: %{x:.2f}",
+      "45 minus 90 response: %{x:.2f}<br>",
+      "Red bars indicate variables where the transformed 45 mg/dL response is lower than the transformed 90 mg/dL response.",
       "<extra></extra>"
     )
   ) |>
     plotly::layout(
-      title = list(text = "Adjusted 45-vs-90 Score Contributions", x = 0.02),
+      font = list(size = 14),
+      title = list(
+        text = "Clamp Response Contributions",
+        x = 0.02,
+        font = list(size = 18)
+      ),
       xaxis = list(
-        title = "Adjusted response values",
+        title = list(text = "Response contribution", font = list(size = 15)),
         zeroline = TRUE,
-        zerolinecolor = "#555555"
+        zerolinecolor = "#555555",
+        tickfont = list(size = 13)
       ),
       yaxis = list(
         title = "",
         categoryorder = "array",
-        categoryarray = contributions$label
+        categoryarray = contributions$label,
+        tickfont = list(size = 13)
       ),
       margin = list(l = 155, r = 25, t = 55, b = 70),
       showlegend = FALSE
@@ -185,21 +202,29 @@ plot_unadjusted_contributions <- function(row, vars = CLAMP_VARIABLES) {
     marker = list(color = colors),
     hovertemplate = paste(
       "<b>%{y}</b><br>",
-      "45 mg/dL response value: %{x:.2f}",
+      "45 mg/dL response value: %{x:.2f}<br>",
+      "Red bars indicate transformed values below zero; physiological raw values between 0 and 1 become negative after log2 transformation.",
       "<extra></extra>"
     )
   ) |>
     plotly::layout(
-      title = list(text = "Unadjusted 45 mg/dL Score Contributions", x = 0.02),
+      font = list(size = 14),
+      title = list(
+        text = "Clamp Response Contributions",
+        x = 0.02,
+        font = list(size = 18)
+      ),
       xaxis = list(
-        title = "Response values",
+        title = list(text = "Response contribution", font = list(size = 15)),
         zeroline = TRUE,
-        zerolinecolor = "#555555"
+        zerolinecolor = "#555555",
+        tickfont = list(size = 13)
       ),
       yaxis = list(
         title = "",
         categoryorder = "array",
-        categoryarray = contributions$label
+        categoryarray = contributions$label,
+        tickfont = list(size = 13)
       ),
       margin = list(l = 155, r = 25, t = 55, b = 70),
       showlegend = FALSE
@@ -212,6 +237,36 @@ safe_filename_part <- function(x) {
   x <- gsub("_+", "_", x)
   x <- gsub("^_|_$", "", x)
   if (is.na(x) || !nzchar(x)) "subject" else x
+}
+
+STATIC_PLOT_BASE_SIZE <- 17
+
+static_plot_text_theme <- function() {
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(
+      face = "bold",
+      size = ggplot2::rel(1.2)
+    ),
+    axis.title = ggplot2::element_text(size = ggplot2::rel(1.05)),
+    axis.text = ggplot2::element_text(size = ggplot2::rel(0.95)),
+    legend.title = ggplot2::element_text(
+      face = "bold",
+      size = ggplot2::rel(1.0)
+    ),
+    legend.text = ggplot2::element_text(size = ggplot2::rel(0.9))
+  )
+}
+
+static_contribution_text_theme <- function() {
+  static_plot_text_theme() +
+    ggplot2::theme(
+      axis.text.y = ggplot2::element_text(size = ggplot2::rel(0.92)),
+      plot.margin = ggplot2::margin(12, 18, 24, 16)
+    )
+}
+
+static_plot_caption <- function(text, width = 82) {
+  paste(strwrap(text, width = width), collapse = "\n")
 }
 
 static_response_profile_plot <- function(row, vars = CLAMP_VARIABLES) {
@@ -246,11 +301,10 @@ static_response_profile_plot <- function(row, vars = CLAMP_VARIABLES) {
       color = "Variable"
     ) +
     ggplot2::guides(color = ggplot2::guide_legend(ncol = 4, byrow = TRUE)) +
-    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme_minimal(base_size = STATIC_PLOT_BASE_SIZE) +
+    static_plot_text_theme() +
     ggplot2::theme(
-      plot.title = ggplot2::element_text(face = "bold"),
       legend.position = "bottom",
-      legend.title = ggplot2::element_text(face = "bold"),
       panel.grid.minor = ggplot2::element_blank()
     )
 }
@@ -297,14 +351,18 @@ static_adjusted_contributions_plot <- function(row, vars = CLAMP_VARIABLES) {
       values = c("TRUE" = "#2b6cb0", "FALSE" = "#b83232")
     ) +
     ggplot2::labs(
-      title = "Adjusted 45-vs-90 Score Contributions",
-      x = "Adjusted response values",
-      y = NULL
+      title = "Clamp Response Contributions",
+      x = "Response contribution",
+      y = NULL,
+      caption = static_plot_caption(
+        "Red bars indicate variables where the transformed 45 mg/dL response is lower than the transformed 90 mg/dL response."
+      )
     ) +
-    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme_minimal(base_size = STATIC_PLOT_BASE_SIZE) +
+    static_contribution_text_theme() +
     ggplot2::theme(
-      plot.title = ggplot2::element_text(face = "bold"),
       legend.position = "none",
+      plot.caption = ggplot2::element_text(hjust = 0, size = ggplot2::rel(0.78)),
       panel.grid.major.y = ggplot2::element_blank(),
       panel.grid.minor = ggplot2::element_blank()
     )
@@ -348,34 +406,71 @@ static_unadjusted_contributions_plot <- function(row, vars = CLAMP_VARIABLES) {
       values = c("TRUE" = "#2b6cb0", "FALSE" = "#b83232")
     ) +
     ggplot2::labs(
-      title = "Unadjusted 45 mg/dL Score Contributions",
-      x = "Response values",
-      y = NULL
+      title = "Clamp Response Contributions",
+      x = "Response contribution",
+      y = NULL,
+      caption = static_plot_caption(
+        "Red bars indicate transformed values below zero; physiological raw values between 0 and 1 become negative after log2 transformation."
+      )
     ) +
-    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme_minimal(base_size = STATIC_PLOT_BASE_SIZE) +
+    static_contribution_text_theme() +
     ggplot2::theme(
-      plot.title = ggplot2::element_text(face = "bold"),
       legend.position = "none",
+      plot.caption = ggplot2::element_text(hjust = 0, size = ggplot2::rel(0.78)),
       panel.grid.major.y = ggplot2::element_blank(),
       panel.grid.minor = ggplot2::element_blank()
     )
 }
 
-profile_static_plots <- function(row, vars = CLAMP_VARIABLES) {
-  list(
-    clamp_response_profile = static_response_profile_plot(row, vars),
-    adjusted_score_contributions = static_adjusted_contributions_plot(
+static_empty_contribution_plot <- function(message = "No contribution data available.") {
+  ggplot2::ggplot() +
+    ggplot2::annotate(
+      "text",
+      x = 0,
+      y = 0,
+      label = message,
+      size = 5
+    ) +
+    ggplot2::theme_void(base_size = STATIC_PLOT_BASE_SIZE)
+}
+
+static_score_contributions_plot <- function(
+  row,
+  method = "adjusted_45_vs_90",
+  vars = CLAMP_VARIABLES
+) {
+  if (identical(method, "unadjusted_45")) {
+    return(static_unadjusted_contributions_plot(row, vars))
+  }
+  if (identical(method, "adjusted_45_vs_90")) {
+    return(static_adjusted_contributions_plot(row, vars))
+  }
+  static_empty_contribution_plot()
+}
+
+profile_static_plots <- function(
+  row,
+  vars = CLAMP_VARIABLES,
+  method = "adjusted_45_vs_90"
+) {
+  plots <- list(
+    clamp_response_contributions = static_score_contributions_plot(
       row,
-      vars
-    ),
-    unadjusted_score_contributions = static_unadjusted_contributions_plot(
-      row,
+      method,
       vars
     )
   )
+  if (identical(method, "adjusted_45_vs_90")) {
+    plots <- c(
+      list(clamp_response_profile = static_response_profile_plot(row, vars)),
+      plots
+    )
+  }
+  plots
 }
 
-save_static_plot <- function(plot, path, format, width = 9, height = 6) {
+save_static_plot <- function(plot, path, format, width = 10, height = 7) {
   format <- tolower(format)
   if (format == "svg") {
     ggplot2::ggsave(
@@ -425,11 +520,12 @@ export_profile_figure_files <- function(
   row,
   output_dir,
   format,
-  vars = CLAMP_VARIABLES
+  vars = CLAMP_VARIABLES,
+  method = "adjusted_45_vs_90"
 ) {
   format <- tolower(format)
   dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-  plots <- profile_static_plots(row, vars)
+  plots <- profile_static_plots(row, vars, method)
   extension <- if (format == "jpg") "jpeg" else format
 
   vapply(
@@ -443,8 +539,13 @@ export_profile_figure_files <- function(
   )
 }
 
-export_profile_figures_pdf <- function(row, path, vars = CLAMP_VARIABLES) {
-  plots <- profile_static_plots(row, vars)
+export_profile_figures_pdf <- function(
+  row,
+  path,
+  vars = CLAMP_VARIABLES,
+  method = "adjusted_45_vs_90"
+) {
+  plots <- profile_static_plots(row, vars, method)
   grDevices::pdf(path, width = 11, height = 8.5, onefile = TRUE)
 
   on.exit(grDevices::dev.off(), add = TRUE)

@@ -414,11 +414,19 @@ normalize_wide_upload <- function(df, sheet = NA_character_, mappings = NULL) {
 
   ignored_cols <- setdiff(raw_names, mappings$column_name)
   missing_after_parse <- setdiff(required_score_cols(), mappings$canonical_column)
+  missing_45_after_parse <- intersect(missing_after_parse, required_45_cols())
+  missing_90_after_parse <- intersect(missing_after_parse, required_90_cols())
   parser_warnings <- character(0)
-  if (length(missing_after_parse) > 0) {
+  if (length(missing_45_after_parse) > 0) {
     parser_warnings <- c(
       parser_warnings,
-      paste("Required scoring columns not found in wide upload:", paste(missing_after_parse, collapse = ", "))
+      paste("Required 45 mg/dL scoring columns not found in wide upload:", paste(missing_45_after_parse, collapse = ", "))
+    )
+  }
+  if (length(missing_90_after_parse) > 0) {
+    parser_warnings <- c(
+      parser_warnings,
+      paste("90 mg/dL columns not found in wide upload; affected subjects will use unadjusted 45 mg/dL scoring when 45 mg/dL values are complete:", paste(missing_90_after_parse, collapse = ", "))
     )
   }
 
@@ -571,11 +579,19 @@ normalize_raw_grouped_upload <- function(raw_df, sheet = NA_character_, candidat
   rownames(normalized) <- selected_subject_ids(id_metadata)
   parsed_columns <- mappings$canonical_column
   missing_after_parse <- setdiff(required_score_cols(), parsed_columns)
+  missing_45_after_parse <- intersect(missing_after_parse, required_45_cols())
+  missing_90_after_parse <- intersect(missing_after_parse, required_90_cols())
   parser_warnings <- character(0)
-  if (length(missing_after_parse) > 0) {
+  if (length(missing_45_after_parse) > 0) {
     parser_warnings <- c(
       parser_warnings,
-      paste("Required scoring columns not found in raw layout:", paste(missing_after_parse, collapse = ", "))
+      paste("Required 45 mg/dL scoring columns not found in raw layout:", paste(missing_45_after_parse, collapse = ", "))
+    )
+  }
+  if (length(missing_90_after_parse) > 0) {
+    parser_warnings <- c(
+      parser_warnings,
+      paste("90 mg/dL columns not found in raw layout; affected subjects will use unadjusted 45 mg/dL scoring when 45 mg/dL values are complete:", paste(missing_90_after_parse, collapse = ", "))
     )
   }
 

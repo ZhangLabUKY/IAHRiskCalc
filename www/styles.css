@@ -96,6 +96,19 @@ body {
   font-size: 18px;
 }
 
+.results-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.results-header h3 {
+  margin-bottom: 0;
+}
+
 .detail-panel {
   background: var(--iah-panel);
   border: 1px solid var(--iah-border);
@@ -321,6 +334,10 @@ body {
 .small-note {
   color: var(--iah-muted);
   font-size: 13px;
+}
+
+.plot-note {
+  margin: 2px 0 8px;
 }
 
 .download-row {

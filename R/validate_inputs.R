@@ -1,11 +1,11 @@
 validate_required_columns <- function(df, vars = CLAMP_VARIABLES) {
-  missing_cols <- setdiff(required_score_cols(vars), names(df))
+  missing_cols <- setdiff(required_45_cols(vars), names(df))
 
   list(
     ok = length(missing_cols) == 0,
     missing_cols = missing_cols,
     message = if (length(missing_cols) == 0) {
-      "All required scoring columns are present."
+      "All required 45 mg/dL scoring columns are present."
     } else {
       paste("Missing required columns:", paste(missing_cols, collapse = ", "))
     }
@@ -37,7 +37,7 @@ validate_numeric_columns <- function(df, cols = intersect(names(df), clamp_cols(
 }
 
 missing_required_values <- function(df, vars = CLAMP_VARIABLES) {
-  cols <- intersect(required_score_cols(vars), names(df))
+  cols <- intersect(required_45_cols(vars), names(df))
   if (length(cols) == 0) {
     return(data.frame())
   }

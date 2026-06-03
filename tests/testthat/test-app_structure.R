@@ -61,6 +61,68 @@ test_that("manual entry scoring succeeds with complete values", {
   })
 })
 
+test_that("manual mode initializes safely before fields are populated", {
+  shiny::testServer(iah_app_server, {
+    session$setInputs(input_mode = "manual")
+
+    preflight <- current_preflight()
+
+    expect_equal(nrow(preflight$data), 1)
+    expect_equal(rownames(preflight$data), "New subject")
+    expect_true(all(is.na(preflight$data[1, required_score_cols()])))
+    expect_true(show_manual_entry())
+  })
+})
+
+test_that("manual edit restores session values and recalculates from edits", {
+  shiny::testServer(iah_app_server, {
+    values <- manual_server_inputs(subject_id = "Manual cached subject")
+    values[[manual_input_id("Heart", 45)]] <- 2
+    set_many_inputs(session, values)
+    session$setInputs(calculate = 1)
+
+    first_result <- current_result()
+    expect_true(first_result$ok)
+    expect_false(show_manual_entry())
+    expect_equal(manual_entry_cache()$values$Heart_45, 2)
+
+    session$setInputs(edit_manual_entry = 1)
+    expect_true(show_manual_entry())
+    restored <- paste(
+      as.character(manual_entry_ui(manual_entry_cache()$values)),
+      collapse = "\n"
+    )
+    expect_match(restored, 'value="2"', fixed = TRUE)
+
+    edit_values <- list()
+    edit_values[[manual_input_id("Heart", 45)]] <- 12
+    set_many_inputs(session, edit_values)
+    session$setInputs(calculate = 2)
+
+    second_result <- current_result()
+    expect_true(second_result$ok)
+    expect_equal(manual_entry_cache()$values$Heart_45, 12)
+    expect_gt(
+      second_result$scores$primary_score[[1]],
+      first_result$scores$primary_score[[1]]
+    )
+  })
+})
+
+test_that("manual scoring stores profile state for plot workflows", {
+  shiny::testServer(iah_app_server, {
+    set_many_inputs(session, manual_server_inputs(subject_id = "Plot subject"))
+    session$setInputs(calculate = 1)
+
+    state <- profile_state()
+
+    expect_false(is.null(state))
+    expect_equal(state$source, "manual")
+    expect_equal(rownames(state$df), "Plot subject")
+    expect_equal(state$scores$participant_id, "Plot subject")
+  })
+})
+
 test_that("upload scoring stores uploaded data for plot workflows", {
   path <- write_wide_csv_fixture()
 
@@ -141,19 +203,25 @@ test_that("missing values use no imputation by default and mean imputation when 
 
 test_that("multi-subject summary cards show impaired-range counts", {
   scores <- data.frame(
-    unadjusted_at_risk = c(TRUE, TRUE, FALSE, FALSE, NA),
-    adjusted_at_risk = c(TRUE, FALSE, TRUE, FALSE, TRUE),
+    primary_impaired_awareness = c(TRUE, TRUE, FALSE, FALSE, NA),
+    score_method = c(
+      "adjusted_45_vs_90",
+      "unadjusted_45",
+      "adjusted_45_vs_90",
+      "unadjusted_45",
+      "unable_to_calculate"
+    ),
     check.names = FALSE
   )
 
   html <- paste(as.character(score_summary_cards(scores)), collapse = "\n")
 
-  expect_match(html, "Any impaired-range score", fixed = TRUE)
-  expect_match(html, "Both scores impaired range", fixed = TRUE)
-  expect_match(html, "Unadjusted or adjusted score below threshold", fixed = TRUE)
-  expect_match(html, "IAH classification: both scores below threshold", fixed = TRUE)
-  expect_match(html, "Exactly one score is below threshold", fixed = TRUE)
-  expect_match(html, "score-value\">3<", fixed = TRUE)
-  expect_match(html, "score-value\">1<", fixed = TRUE)
+  expect_match(html, "IAH", fixed = TRUE)
+  expect_match(html, "NAH", fixed = TRUE)
+  expect_match(html, "Primary score below cutoff", fixed = TRUE)
+  expect_match(html, "Primary score meets or exceeds cutoff", fixed = TRUE)
+  expect_match(html, "Adjusted method", fixed = TRUE)
+  expect_match(html, "Unadjusted method", fixed = TRUE)
   expect_match(html, "score-value\">2<", fixed = TRUE)
+  expect_match(html, "score-value\">1<", fixed = TRUE)
 })

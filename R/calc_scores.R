@@ -52,6 +52,46 @@ required_score_cols <- function(vars = CLAMP_VARIABLES) {
   c(paste0(vars, "_45"), paste0(vars, "_90"))
 }
 
+required_45_cols <- function(vars = CLAMP_VARIABLES) {
+  paste0(vars, "_45")
+}
+
+required_90_cols <- function(vars = CLAMP_VARIABLES) {
+  paste0(vars, "_90")
+}
+
+score_method_label <- function(method) {
+  labels <- c(
+    adjusted_45_vs_90 = "Adjusted clamp response",
+    unadjusted_45 = "Unadjusted 45 mg/dL response",
+    unable_to_calculate = "Unable to calculate"
+  )
+  out <- unname(labels[as.character(method)])
+  ifelse(is.na(out), as.character(method), out)
+}
+
+score_method_detail <- function(method) {
+  details <- c(
+    adjusted_45_vs_90 = "45 mg/dL response minus 90 mg/dL response",
+    unadjusted_45 = "Total response at 45 mg/dL",
+    unable_to_calculate = "Complete 45 mg/dL values are required"
+  )
+  out <- unname(details[as.character(method)])
+  ifelse(is.na(out), "", out)
+}
+
+primary_cutoff_result <- function(score, cutoff) {
+  ifelse(
+    is.na(score) | is.na(cutoff),
+    "Unable to calculate",
+    ifelse(
+      score >= cutoff,
+      "Meets cutoff: NAH",
+      "Below cutoff: IAH"
+    )
+  )
+}
+
 read_clamp_csv <- function(path) {
   utils::read.csv(
     path,
@@ -89,18 +129,28 @@ calc_clamp_scores <- function(
   unadjusted_cutoff = UNADJUSTED_45_CUTOFF,
   adjusted_cutoff = ADJUSTED_45_VS_90_CUTOFF
 ) {
-  cols_45 <- paste0(vars, "_45")
-  cols_90 <- paste0(vars, "_90")
+  cols_45 <- required_45_cols(vars)
+  cols_90 <- required_90_cols(vars)
   required_cols <- c(cols_45, cols_90)
-  missing_cols <- setdiff(required_cols, names(df))
+  missing_cols <- setdiff(cols_45, names(df))
 
   if (length(missing_cols) > 0) {
     stop("Missing required columns: ", paste(missing_cols, collapse = ", "), call. = FALSE)
   }
 
+  missing_90_cols <- setdiff(cols_90, names(df))
+  for (col in missing_90_cols) {
+    df[[col]] <- NA_real_
+  }
+
   df <- coerce_clamp_numeric(df, required_cols)
 
   missing_value_count <- rowSums(is.na(df[, required_cols, drop = FALSE]))
+  missing_45_count <- rowSums(is.na(df[, cols_45, drop = FALSE]))
+  missing_90_count <- rowSums(is.na(df[, cols_90, drop = FALSE]))
+  complete_45 <- missing_45_count == 0
+  complete_90 <- missing_90_count == 0
+
   unadjusted_45_sum <- rowSums(df[, cols_45, drop = FALSE], na.rm = FALSE)
   adjusted_values <- as.matrix(df[, cols_45, drop = FALSE]) -
     as.matrix(df[, cols_90, drop = FALSE])
@@ -132,14 +182,37 @@ calc_clamp_scores <- function(
     xor(unadjusted_impaired_awareness, adjusted_impaired_awareness)
   )
 
+  score_method <- ifelse(
+    complete_45 & complete_90,
+    "adjusted_45_vs_90",
+    ifelse(complete_45, "unadjusted_45", "unable_to_calculate")
+  )
+  primary_score <- ifelse(
+    score_method == "adjusted_45_vs_90",
+    adjusted_45_vs_90_sum,
+    ifelse(score_method == "unadjusted_45", unadjusted_45_sum, NA_real_)
+  )
+  primary_cutoff <- ifelse(
+    score_method == "adjusted_45_vs_90",
+    adjusted_cutoff,
+    ifelse(score_method == "unadjusted_45", unadjusted_cutoff, NA_real_)
+  )
+  primary_normal_awareness <- ifelse(
+    is.na(primary_score),
+    NA,
+    primary_score >= primary_cutoff
+  )
+  primary_impaired_awareness <- ifelse(
+    is.na(primary_normal_awareness),
+    NA,
+    !primary_normal_awareness
+  )
+  primary_status <- primary_cutoff_result(primary_score, primary_cutoff)
+
   overall_group <- ifelse(
-    is.na(unadjusted_impaired_awareness) | is.na(adjusted_impaired_awareness),
+    is.na(primary_impaired_awareness),
     "Unable to calculate; missing required values",
-    ifelse(
-      unadjusted_impaired_awareness & adjusted_impaired_awareness,
-      "IAH",
-      ifelse(discordant_flag, "Likely IAH", "NAH")
-    )
+    ifelse(primary_impaired_awareness, "IAH", "NAH")
   )
 
   data.frame(
@@ -158,6 +231,18 @@ calc_clamp_scores <- function(
     adjusted_at_risk = adjusted_impaired_awareness,
     discordant_flag = discordant_flag,
     missing_value_count = missing_value_count,
+    missing_45_count = missing_45_count,
+    missing_90_count = missing_90_count,
+    score_method = score_method,
+    score_method_label = score_method_label(score_method),
+    score_method_detail = score_method_detail(score_method),
+    primary_score = primary_score,
+    primary_cutoff = primary_cutoff,
+    primary_distance = primary_score - primary_cutoff,
+    primary_normal_awareness = primary_normal_awareness,
+    primary_impaired_awareness = primary_impaired_awareness,
+    primary_status = primary_status,
+    primary_cutoff_result = primary_status,
     imputation_used = FALSE,
     imputed_variables = "",
     overall_group = overall_group,
@@ -166,20 +251,28 @@ calc_clamp_scores <- function(
 }
 
 score_summary_counts <- function(scores) {
-  unable <- is.na(scores$unadjusted_at_risk) | is.na(scores$adjusted_at_risk)
-  unadjusted_impaired <- isTRUE(scores$unadjusted_at_risk)
-  adjusted_impaired <- isTRUE(scores$adjusted_at_risk)
-
-  if (nrow(scores) > 1) {
+  if ("primary_impaired_awareness" %in% names(scores)) {
+    unable <- is.na(scores$primary_impaired_awareness)
+    impaired <- scores$primary_impaired_awareness %in% TRUE
+  } else {
+    unable <- is.na(scores$unadjusted_at_risk) | is.na(scores$adjusted_at_risk)
     unadjusted_impaired <- scores$unadjusted_at_risk %in% TRUE
     adjusted_impaired <- scores$adjusted_at_risk %in% TRUE
+    impaired <- (unadjusted_impaired | adjusted_impaired) & !unable
+  }
+
+  methods <- if ("score_method" %in% names(scores)) {
+    scores$score_method
+  } else {
+    rep(NA_character_, nrow(scores))
   }
 
   data.frame(
     subjects_scored = nrow(scores),
-    any_impaired_score = sum((unadjusted_impaired | adjusted_impaired) & !unable),
-    both_scores_impaired = sum((unadjusted_impaired & adjusted_impaired) & !unable),
-    discordant = sum(xor(unadjusted_impaired, adjusted_impaired) & !unable),
+    impaired_awareness = sum(impaired & !unable),
+    normal_awareness = sum(!impaired & !unable),
+    adjusted_method = sum(methods == "adjusted_45_vs_90", na.rm = TRUE),
+    unadjusted_method = sum(methods == "unadjusted_45", na.rm = TRUE),
     unable_to_calculate = sum(unable),
     check.names = FALSE
   )
@@ -194,6 +287,10 @@ format_score_results_for_display <- function(scores) {
     "adjusted_at_risk",
     "discordant_flag",
     "missing_value_count",
+    "score_method_label",
+    "primary_score",
+    "primary_cutoff",
+    "primary_cutoff_result",
     "imputation_used",
     "overall_group"
   )
@@ -205,8 +302,10 @@ format_score_results_for_display <- function(scores) {
 
   data.frame(
     "Subject ID" = scores$participant_id,
-    "Unadjusted 45 mg/dL score (NAH threshold >= 66.5)" = round(scores$unadjusted_45_sum, 2),
-    "Adjusted 45-vs-90 score (NAH threshold >= 25)" = round(scores$adjusted_45_vs_90_sum, 2),
+    "Score method" = scores$score_method_label,
+    "Score" = round(scores$primary_score, 2),
+    "Cutoff" = round(scores$primary_cutoff, 2),
+    "Cutoff result" = scores$primary_cutoff_result,
     "Awareness status" = scores$overall_group,
     check.names = FALSE
   )
