@@ -49,6 +49,14 @@ test_that("app UI exposes the calculator, plot, and methods workflows", {
   ))
   expect_match(html, "Upload file", fixed = TRUE)
   expect_match(html, "Manual entry", fixed = TRUE)
+  expect_match(html, "Example data", fixed = TRUE)
+  expect_match(html, "Normal awareness", fixed = TRUE)
+  expect_match(html, "Impaired awareness", fixed = TRUE)
+  expect_match(html, "width: 200px !important", fixed = TRUE)
+  expect_match(html, "gap: 14px", fixed = TRUE)
+  expect_match(html, "margin: 22px 0 32px", fixed = TRUE)
+  expect_match(html, "manual-example-controls", fixed = TRUE)
+  expect_match(html, "manual-example-buttons", fixed = TRUE)
   expect_match(html, "No Imputation", fixed = TRUE)
   expect_match(html, "Mean imputation", fixed = TRUE)
   expect_match(html, "Manual entry is the default workflow", fixed = TRUE)
@@ -74,6 +82,16 @@ test_that("navbar and uploaded result CSS preserve contrast and horizontal cards
   expect_match(css, "flex-direction: column", fixed = TRUE)
   expect_match(css, ".uploaded-subject-result .score-grid", fixed = TRUE)
   expect_match(css, "grid-template-columns: repeat(3, minmax(0, 1fr))", fixed = TRUE)
+  expect_match(css, ".manual-example-controls", fixed = TRUE)
+  expect_match(css, ".manual-example-buttons", fixed = TRUE)
+  expect_match(css, ".manual-example-button", fixed = TRUE)
+  expect_match(css, ".workflow-panel .manual-example-title", fixed = TRUE)
+  expect_match(css, "margin: 22px 0 32px", fixed = TRUE)
+  expect_match(css, "gap: 14px", fixed = TRUE)
+  expect_match(css, "min-width: 200px", fixed = TRUE)
+  expect_match(css, "width: 200px !important", fixed = TRUE)
+  expect_match(css, "height: 44px", fixed = TRUE)
+  expect_match(css, "white-space: normal", fixed = TRUE)
 })
 
 test_that("manual entry UI uses readable clamp labels", {
@@ -84,6 +102,34 @@ test_that("manual entry UI uses readable clamp labels", {
   expect_match(html, "Tired/Drowsy", fixed = TRUE)
   expect_match(html, "Free fatty acids", fixed = TRUE)
   expect_match(html, "Pancreatic Polypeptide", fixed = TRUE)
+})
+
+test_that("manual examples are complete and classify as intended", {
+  cases <- list(
+    normal_awareness = "NAH",
+    impaired_awareness = "IAH"
+  )
+
+  for (case in names(cases)) {
+    example <- manual_example_values(case)
+
+    expect_equal(names(example$values), required_score_cols())
+    expect_false(any(is.na(unlist(example$values, use.names = FALSE))))
+    expect_false(grepl("K21|K105", example$participant_id))
+
+    df <- as.data.frame(example$values, check.names = FALSE)
+    rownames(df) <- example$participant_id
+    transformed <- transform_physiological_responses(
+      df,
+      allow_offset = FALSE,
+      offset_method = "paired"
+    )
+    scores <- calc_clamp_scores(transformed$data)
+
+    expect_true(transformed$ok)
+    expect_equal(scores$overall_group, cases[[case]])
+    expect_equal(scores$missing_value_count, 0)
+  }
 })
 
 test_that("manual entry scoring succeeds with complete values", {
@@ -97,6 +143,33 @@ test_that("manual entry scoring succeeds with complete values", {
     expect_equal(result$scores$participant_id, "Manual subject")
     expect_equal(result$scores$overall_group, "NAH")
     expect_true(has_successful_result())
+  })
+})
+
+test_that("manual example buttons populate cache and clear stale results", {
+  shiny::testServer(iah_app_server, {
+    set_many_inputs(session, manual_server_inputs())
+    session$setInputs(calculate = 1)
+
+    expect_true(current_result()$ok)
+    expect_false(is.null(profile_state()))
+
+    session$setInputs(load_normal_example = 1)
+    normal <- manual_entry_cache()
+
+    expect_equal(normal$participant_id, "Normal awareness example")
+    expect_equal(names(normal$values), required_score_cols())
+    expect_true(show_manual_entry())
+    expect_true(is.null(current_result()))
+    expect_true(is.null(profile_state()))
+
+    session$setInputs(load_impaired_example = 1)
+    impaired <- manual_entry_cache()
+
+    expect_equal(impaired$participant_id, "Impaired awareness example")
+    expect_equal(names(impaired$values), required_score_cols())
+    expect_false(identical(normal$values, impaired$values))
+    expect_true(is.null(current_result()))
   })
 })
 

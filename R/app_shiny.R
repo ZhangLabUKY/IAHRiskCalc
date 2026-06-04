@@ -65,6 +65,96 @@ manual_entry_ui <- function(values = NULL) {
   )
 }
 
+manual_example_values <- function(example = c("normal_awareness", "impaired_awareness")) {
+  example <- match.arg(example)
+  examples <- list(
+    normal_awareness = list(
+      participant_id = "Normal awareness example",
+      values = c(
+        Heart_90 = 0.2, Heart_45 = 1.9,
+        Shaky_90 = 0.2, Shaky_45 = 3.9,
+        Sweaty_90 = 0.2, Sweaty_45 = 3.9,
+        Hungry_90 = 2.2, Hungry_45 = 4.9,
+        Tingling_90 = 0.2, Tingling_45 = 1.9,
+        Confused_90 = 0.2, Confused_45 = 1.9,
+        Tired_90 = 0.2, Tired_45 = 1.9,
+        Weak_90 = 0.2, Weak_45 = 1.9,
+        Warm_90 = 2.2, Warm_45 = 1.9,
+        Faint_90 = 0.2, Faint_45 = 0,
+        Dizzy_90 = 0.2, Dizzy_45 = 0,
+        Cortisol_90 = 9.13, Cortisol_45 = 21.11,
+        Glucagon_90 = 35.57, Glucagon_45 = 22.88,
+        Dopamine_90 = 114.57, Dopamine_45 = 135.2,
+        Epinephrine_90 = 128.15, Epinephrine_45 = 1660.77,
+        Norepinephrine_90 = 1434.54, Norepinephrine_45 = 1061.36,
+        FreeFattyAcids_90 = 0.06, FreeFattyAcids_45 = 0.12,
+        HGH_90 = 0.29, HGH_45 = 22.67,
+        PancreaticP_90 = 43.3, PancreaticP_45 = 800.8,
+        Insulin_90 = 93.29, Insulin_45 = 136.77
+      )
+    ),
+    impaired_awareness = list(
+      participant_id = "Impaired awareness example",
+      values = c(
+        Heart_90 = 0.2, Heart_45 = 0.1,
+        Shaky_90 = 0.2, Shaky_45 = 0.1,
+        Sweaty_90 = 0.2, Sweaty_45 = 0.1,
+        Hungry_90 = 0.2, Hungry_45 = 5.1,
+        Tingling_90 = 0.2, Tingling_45 = 0.1,
+        Confused_90 = 0.2, Confused_45 = 0.1,
+        Tired_90 = 0.2, Tired_45 = 0.1,
+        Weak_90 = 0.2, Weak_45 = 0.1,
+        Warm_90 = 0.2, Warm_45 = 0.1,
+        Faint_90 = 0.2, Faint_45 = 0.1,
+        Dizzy_90 = 0.2, Dizzy_45 = 0.1,
+        Cortisol_90 = 12.58, Cortisol_45 = 8.14,
+        Glucagon_90 = 28.8, Glucagon_45 = 30.9,
+        Dopamine_90 = 124.8, Dopamine_45 = 133.9,
+        Epinephrine_90 = 138.58, Epinephrine_45 = 268.83,
+        Norepinephrine_90 = 2055.89, Norepinephrine_45 = 1978.63,
+        FreeFattyAcids_90 = 0.05, FreeFattyAcids_45 = 0.05,
+        HGH_90 = 1.45, HGH_45 = 8.45,
+        PancreaticP_90 = 28.8, PancreaticP_45 = 30.9,
+        Insulin_90 = 148.42, Insulin_45 = 190.86
+      )
+    )
+  )
+
+  selected <- examples[[example]]
+  selected$values <- as.list(selected$values[required_score_cols()])
+  selected
+}
+
+manual_example_controls <- function() {
+  div(
+    class = "manual-example-controls",
+    style = "margin: 22px 0 32px;",
+    h3(
+      class = "manual-example-title",
+      style = "color: var(--iah-blue-dark); font-size: 18px; font-weight: 700; margin: 0 0 12px;",
+      "Example data"
+    ),
+    div(
+      class = "manual-example-buttons",
+      style = "display: flex; flex-direction: column; gap: 14px; width: 200px;",
+      actionButton(
+        "load_normal_example",
+        "Normal awareness",
+        class = "btn-default manual-example-button",
+        width = "200px",
+        style = "width: 200px !important; min-width: 200px; height: 44px; margin: 0 !important;"
+      ),
+      actionButton(
+        "load_impaired_example",
+        "Impaired awareness",
+        class = "btn-default manual-example-button",
+        width = "200px",
+        style = "width: 200px !important; min-width: 200px; height: 44px; margin: 0 !important;"
+      )
+    )
+  )
+}
+
 summary_card <- function(title, value, meta = NULL, class = "") {
   div(
     class = paste("score-card", class),
@@ -359,7 +449,8 @@ iah_app_ui <- function() {
             p(
               class = "small-note",
               "Manual entry scores one subject at a time."
-            )
+            ),
+            manual_example_controls()
           ),
           uiOutput("missing_mode_ui"),
           actionButton("calculate", "Calculate risk", class = "btn-primary")
@@ -616,6 +707,30 @@ iah_app_server <- function(input, output, session) {
     ))
   }
 
+  load_manual_example <- function(example) {
+    selected <- manual_example_values(example)
+    manual_entry_cache(selected)
+    show_manual_entry(TRUE)
+    offset_confirmed(FALSE)
+    pending_offset_payload(NULL)
+    last_result(NULL)
+    profile_state(NULL)
+
+    shiny::updateTextInput(
+      session,
+      "manual_participant_id",
+      value = selected$participant_id
+    )
+    for (field in names(selected$values)) {
+      pieces <- strsplit(field, "_", fixed = TRUE)[[1]]
+      shiny::updateNumericInput(
+        session,
+        manual_input_id(pieces[[1]], pieces[[2]]),
+        value = selected$values[[field]]
+      )
+    }
+  }
+
   current_preflight <- reactive({
     if (identical(input$input_mode, "upload")) {
       return(apply_subject_id_selection_to_preflight(
@@ -848,6 +963,22 @@ iah_app_server <- function(input, output, session) {
     input$edit_manual_entry,
     {
       show_manual_entry(TRUE)
+    },
+    ignoreInit = TRUE
+  )
+
+  observeEvent(
+    input$load_normal_example,
+    {
+      load_manual_example("normal_awareness")
+    },
+    ignoreInit = TRUE
+  )
+
+  observeEvent(
+    input$load_impaired_example,
+    {
+      load_manual_example("impaired_awareness")
     },
     ignoreInit = TRUE
   )

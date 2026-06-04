@@ -345,6 +345,42 @@ body {
   width: 100%;
 }
 
+.manual-example-controls {
+  margin: 22px 0 32px;
+}
+
+.workflow-panel .manual-example-title {
+  color: var(--iah-blue-dark);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 12px;
+}
+
+.manual-example-buttons {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 200px;
+}
+
+.manual-example-buttons .manual-example-button {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex !important;
+  font-size: 13px;
+  font-weight: 700;
+  justify-content: center;
+  line-height: 1.25;
+  margin: 0 !important;
+  height: 44px;
+  min-width: 200px;
+  padding: 8px 10px;
+  width: 200px !important;
+  white-space: normal;
+}
+
 .score-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
