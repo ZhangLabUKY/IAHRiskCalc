@@ -116,10 +116,96 @@ risk_prediction_card <- function(score) {
       ),
       div(
         class = "risk-gauge-labels",
-        span("Low"),
-        span("High")
+        tags$span("Low"),
+        tags$span("High")
       )
     )
+  )
+}
+
+local_description_version <- function(start = getwd(), package = "IAHRiskCalc") {
+  path <- normalizePath(start, winslash = "/", mustWork = TRUE)
+  repeat {
+    description_path <- file.path(path, "DESCRIPTION")
+    if (file.exists(description_path)) {
+      description <- tryCatch(
+        read.dcf(description_path),
+        error = function(e) NULL
+      )
+      if (
+        !is.null(description) &&
+          "Package" %in% colnames(description) &&
+          "Version" %in% colnames(description) &&
+          as.character(description[1, "Package"]) == package
+      ) {
+        return(as.character(description[1, "Version"]))
+      }
+    }
+
+    parent <- dirname(path)
+    if (identical(parent, path)) {
+      return(NA_character_)
+    }
+    path <- parent
+  }
+}
+
+app_version_label <- function(package = "IAHRiskCalc") {
+  version <- tryCatch(
+    as.character(utils::packageVersion(package)),
+    error = function(e) NA_character_
+  )
+  if (is.na(version)) {
+    version <- local_description_version(package = package)
+  }
+  if (is.na(version) || !nzchar(version)) {
+    return(NULL)
+  }
+  paste0("v", version)
+}
+
+navbar_link_item <- function(label, href) {
+  bslib::nav_item(tags$a(
+    class = "navbar-external-link",
+    href = href,
+    target = "_blank",
+    rel = "noopener noreferrer",
+    label
+  ))
+}
+
+uploaded_score_cards <- function(scores, page_size = 4) {
+  if (nrow(scores) == 0) {
+    return(div(class = "app-message warn", "No uploaded subjects to display."))
+  }
+
+  pages <- split(
+    seq_len(nrow(scores)),
+    ceiling(seq_len(nrow(scores)) / page_size)
+  )
+  tabs <- lapply(pages, function(idx) {
+    tabPanel(
+      paste0("Subjects ", min(idx), "-", max(idx)),
+      div(
+        class = "uploaded-results-page",
+        lapply(idx, function(i) {
+          score <- scores[i, , drop = FALSE]
+          div(
+            class = "uploaded-subject-result",
+            h4(
+              class = "uploaded-subject-title",
+              paste("Subject ID:", score$participant_id[[1]])
+            ),
+            single_score_cards(score)
+          )
+        })
+      )
+    )
+  })
+
+  do.call(
+    tabsetPanel,
+    c(unname(tabs), list(id = "uploaded_results_page", type = "tabs"))
   )
 }
 
@@ -222,15 +308,21 @@ offset_warning_ui <- function(transform_result) {
 
 
 iah_app_ui <- function() {
-  fluidPage(
-  tags$head(tags$link(
-    rel = "stylesheet",
-    type = "text/css",
-    href = "styles.css"
-  )),
-  titlePanel("IAH Clamp-Based Risk Calculator"),
-  tabsetPanel(
-    tabPanel(
+  tagList(
+    tags$head(tags$link(
+      rel = "stylesheet",
+      type = "text/css",
+      href = "styles.css"
+    )),
+    bslib::page_navbar(
+      title = tagList(
+        tags$span(class = "navbar-title-text", "IAH Clamp-Based Risk Calculator"),
+        tags$span(class = "navbar-version", app_version_label())
+      ),
+      fillable = FALSE,
+      window_title = "IAH Clamp-Based Risk Calculator",
+      navbar_options = bslib::navbar_options(collapsible = TRUE),
+      bslib::nav_panel(
       "Calculator",
       div(
         class = "workflow-grid",
@@ -283,7 +375,7 @@ iah_app_ui <- function() {
         )
       )
     ),
-    tabPanel(
+    bslib::nav_panel(
       "Plots",
       div(
         class = "profile-shell",
@@ -327,16 +419,20 @@ iah_app_ui <- function() {
         )
       )
     ),
-    tabPanel(
+    bslib::nav_panel(
       "Methods",
       div(
         class = "methods",
-        h3("Purpose and Inputs"),
+        h3("Purpose"),
         p(
-          "This app supports research workflows for calculating impaired awareness of hypoglycemia (IAH) risk from hyperinsulinemic clamp response data. Subjects can be scored from an uploaded clamp file or from manual entry."
+          "This app supports research workflows for estimating impaired awareness of hypoglycemia from hyperinsulinemic clamp response data. It is intended for study-specific risk calculation and review, not standalone clinical diagnosis."
+        ),
+        h3("Calculator Workflow"),
+        p(
+          "Manual entry is the default workflow and scores one subject at a time. Uploaded CSV, XLS, or XLSX files can score multiple subjects in the same session."
         ),
         p(
-          "The risk calculation uses required response values measured at 45 and 90 mg/dL. Uploaded data become the working dataset for the current app session and are also used for plots, downloads, and mean imputation when selected."
+          "Single-subject and uploaded-subject results use the same patient-facing cards: Patient Value, Overall Classification, and IAH Risk Prediction. Uploaded results are grouped into pages of up to four subjects, and the scored CSV download is available from the Results header."
         ),
         h3("Automated Preprocessing"),
         tags$ul(
@@ -347,7 +443,7 @@ iah_app_ui <- function() {
             "The Subject ID selector controls which uploaded column is used for subject labels in warnings, results, and plots."
           ),
           tags$li(
-            "Symptom values are used as entered. Physiological variables are treated as raw values and log2-transformed before scoring."
+            "Symptom values are used as entered. Physiological variables are treated as raw values and log2-transformed before scoring and plotting."
           )
         ),
         h3("Log2 Offset Handling"),
@@ -355,7 +451,10 @@ iah_app_ui <- function() {
           "Physiological raw values that are zero or negative cannot be log2-transformed directly. When these values are detected, the app asks for confirmation before scoring."
         ),
         p(
-          "After confirmation, each affected uploaded value is set to 80% of the minimum positive raw value for that same physiological field in the current scoring dataset. For manual entry, the app uses 80% of the minimum positive value from the same physiological response's 45/90 pair. If no positive value is available from the applicable anchor, scoring stops with a clear transform error."
+          "After confirmation, uploaded data use the existing per-column offset rule: each affected value is set to 80% of the minimum positive raw value for that same physiological field in the current scoring dataset."
+        ),
+        p(
+          "Manual entry uses a paired same-analyte rule: a non-positive 45 or 90 mg/dL physiological value can use 80% of the smallest positive value from that same analyte's 45/90 pair. If no positive anchor is available from the applicable source, scoring stops with a clear transform error."
         ),
         h3("Missing Data"),
         p(
@@ -372,35 +471,49 @@ iah_app_ui <- function() {
           )
         ),
         h3("Risk Scores"),
+        p(
+          "The app selects one primary score per subject based on the best available data."
+        ),
         tags$ul(
           tags$li(
             tags$strong("Unadjusted 45 mg/dL response score: "),
-            "the sum of all 20 response values measured at glucose 45 mg/dL."
+            "the sum of all 20 response values measured at glucose 45 mg/dL. This is used when complete 45 mg/dL data are available but 90 mg/dL data are unavailable."
           ),
           tags$li(
             tags$strong("Adjusted 45-vs-90 response score: "),
-            "the sum of each variable's 45 mg/dL response minus its paired 90 mg/dL response."
+            "the sum of each variable's 45 mg/dL response minus its paired 90 mg/dL response. This is preferred when complete 45 and 90 mg/dL data are available."
           )
         ),
         h3("Cutoffs and Labels"),
         tags$ul(
-          tags$li("Adjusted scoring is used when complete 45 and 90 mg/dL data are available; its cutoff is 25."),
-          tags$li("Unadjusted scoring is used when complete 45 mg/dL data are available but 90 mg/dL data are unavailable; its cutoff is 66.5."),
-          tags$li("A primary score greater than or equal to its cutoff is classified as NAH."),
-          tags$li("A primary score below its cutoff is classified as IAH.")
+          tags$li("Adjusted 45-vs-90 cutoff: 25."),
+          tags$li("Unadjusted 45 mg/dL cutoff: 66.5."),
+          tags$li("A primary score greater than or equal to its cutoff is classified as normal awareness of hypoglycemia."),
+          tags$li("A primary score below its cutoff is classified as impaired awareness of hypoglycemia.")
         ),
         h3("Plots and Exports"),
         p(
-          "The Plots tab shows interactive Plotly figures for the selected uploaded subject: the clamp response profile and the contribution plot matching the score method used for classification."
+          "The Plots tab is populated after either manual scoring or uploaded-file scoring. The selected subject's active score method controls what is shown."
         ),
-        p(
-          "Calculator results can be downloaded as CSV. Figure downloads use static ggplot2 exports: PDF downloads as one combined multi-page file, while TIFF, SVG, PNG, and JPEG downloads are packaged as a zip containing the response profile and primary contribution panels."
+        tags$ul(
+          tags$li("Adjusted scoring shows the response profile plot and the clamp response contribution plot."),
+          tags$li("Unadjusted scoring shows only the clamp response contribution plot."),
+          tags$li("Figure downloads follow the same rule: adjusted exports include profile plus contribution figures; unadjusted exports include contribution figures only.")
         ),
         h3("Disclaimer"),
         p(
           "This tool supports research workflows using clamp-derived response data and study-specific cutoffs. It is not a standalone clinical diagnostic tool."
         )
       )
+    ),
+    bslib::nav_spacer(),
+    navbar_link_item(
+      "GitHub Repository",
+      "https://github.com/ZhangLabUKY/IAHRiskCalc"
+    ),
+    navbar_link_item(
+      "App Website",
+      "https://zhanglabuky.github.io/IAHRiskCalc/"
     )
   )
 )
@@ -921,27 +1034,21 @@ iah_app_server <- function(input, output, session) {
       div(
         class = "results-header",
         h3("Results"),
-        if (identical(result$source, "manual") && nrow(result$scores) == 1) {
-          actionButton(
-            "edit_manual_entry",
-            "Edit entered data",
-            class = "btn-default"
-          )
-        }
-      ),
-      uiOutput("result_cards"),
-      if (nrow(result$scores) > 1) {
-        tags$details(
-          class = "detail-panel",
-          open = TRUE,
-          tags$summary("Results"),
-          div(
-            class = "download-row",
+        div(
+          class = "results-actions",
+          if (identical(result$source, "upload")) {
             downloadButton("download_results_csv", "Download CSV")
-          ),
-          uiOutput("results_table_ui")
+          },
+          if (identical(result$source, "manual") && nrow(result$scores) == 1) {
+            actionButton(
+              "edit_manual_entry",
+              "Edit entered data",
+              class = "btn-default"
+            )
+          }
         )
-      }
+      ),
+      uiOutput("result_cards")
     )
   })
 
@@ -966,7 +1073,9 @@ iah_app_server <- function(input, output, session) {
   output$result_cards <- renderUI({
     result <- current_result()
     req(result, result$ok)
-    if (nrow(result$scores) == 1) {
+    if (identical(result$source, "upload")) {
+      uploaded_score_cards(result$scores)
+    } else if (nrow(result$scores) == 1) {
       single_score_cards(result$scores[1, ])
     } else {
       score_summary_cards(result$scores)
@@ -1007,7 +1116,7 @@ iah_app_server <- function(input, output, session) {
   output$download_results_csv <- downloadHandler(
     filename = function() {
       result <- current_result()
-      req(result, result$ok, nrow(result$scores) > 1)
+      req(result, result$ok, identical(result$source, "upload"))
       ids <- safe_filename_part(paste(
         result$scores$participant_id,
         collapse = "_"
@@ -1016,7 +1125,7 @@ iah_app_server <- function(input, output, session) {
     },
     content = function(file) {
       result <- current_result()
-      req(result, result$ok, nrow(result$scores) > 1)
+      req(result, result$ok, identical(result$source, "upload"))
       write.csv(
         format_score_results_for_display(result$scores),
         file,

@@ -3156,13 +3156,13 @@
       "checksum": "7f10cb58f61a4f191ce5d2f0e0a8ca13"
     },
     "DESCRIPTION": {
-      "checksum": "db561c4642a30867802f293be0c294df"
+      "checksum": "7cc55b4df127175bb6fa18da932725f0"
     },
     "dev_notes/PROGRESS.md": {
-      "checksum": "b8bada8a11da83553c7d659add9fee87"
+      "checksum": "5c0722f7e481957ea0827b6d5ea03ff4"
     },
     "dev_notes/README.md": {
-      "checksum": "f9722fa0f6e53b32fc67eab9e0c5cf78"
+      "checksum": "8839699a8137ea60b02cd14e2d2c56c3"
     },
     "docs/404.html": {
       "checksum": "85953a02b2b5444c83b1c639f2a75680"
@@ -3312,7 +3312,7 @@
       "checksum": "8a3146ed446226269a79368c4b3b6fed"
     },
     "R/app_shiny.R": {
-      "checksum": "e71796510d51e42115e34199bbd85b17"
+      "checksum": "309290f790c6ef5baec94aac08df95f7"
     },
     "R/calc_scores.R": {
       "checksum": "ac63e7ab6603b6d091992dbebc022da5"
@@ -3375,7 +3375,7 @@
       "checksum": "421a6c7e00ec881771a4f86af60ee8bd"
     },
     "tests/testthat/test-app_structure.R": {
-      "checksum": "d0f7280f451eedd32c45213263944ea5"
+      "checksum": "4bcdd14d93daaf00188876bdb4f15591"
     },
     "tests/testthat/test-calc_scores.R": {
       "checksum": "3cf3b4ae472ee847645779fa76f3f3bb"
@@ -3393,7 +3393,7 @@
       "checksum": "f7e8db6c5838aad8724553210efe6e1d"
     },
     "www/styles.css": {
-      "checksum": "f8e415220657875c91013e7381cc58b4"
+      "checksum": "67c35543364a52cd0c6e71306d4a417e"
     }
   },
   "users": null

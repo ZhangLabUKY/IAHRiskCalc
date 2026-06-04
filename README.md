@@ -6,11 +6,13 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/ZhangLabUKY/IAHRiskCalc/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ZhangLabUKY/IAHRiskCalc/actions/workflows/R-CMD-check.yaml)
+[![Codecov test
+coverage](https://codecov.io/gh/ZhangLabUKY/IAHRiskCalc/graph/badge.svg)](https://app.codecov.io/gh/ZhangLabUKY/IAHRiskCalc)
 <!-- badges: end -->
 
-The goal of IAHRiskCalc is to classify clamp-based impaired awareness
-of hypoglycemia (IAH) status from symptom and physiological
-response values collected at 45 and 90 mg/dL.
+The goal of IAHRiskCalc is to classify clamp-based impaired awareness of
+hypoglycemia (IAH) status from symptom and physiological response values
+collected at 45 and 90 mg/dL.
 
 ## Installation
 

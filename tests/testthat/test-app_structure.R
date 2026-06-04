@@ -26,15 +26,54 @@ set_many_inputs <- function(session, values) {
 
 test_that("app UI exposes the calculator, plot, and methods workflows", {
   html <- paste(as.character(iah_app_ui()), collapse = "\n")
+  expected_version <- app_version_label()
 
+  expect_match(html, "navbar-title-text", fixed = TRUE)
+  expect_match(html, "navbar-brand", fixed = TRUE)
   expect_match(html, "IAH Clamp-Based Risk Calculator", fixed = TRUE)
   expect_match(html, "Calculator", fixed = TRUE)
   expect_match(html, "Plots", fixed = TRUE)
   expect_match(html, "Methods", fixed = TRUE)
+  expect_match(html, "GitHub Repository", fixed = TRUE)
+  expect_match(html, "https://github.com/ZhangLabUKY/IAHRiskCalc", fixed = TRUE)
+  expect_match(html, "App Website", fixed = TRUE)
+  expect_match(html, "https://zhanglabuky.github.io/IAHRiskCalc/", fixed = TRUE)
+  expect_match(html, expected_version, fixed = TRUE)
+  expect_false(grepl(
+    paste0(
+      '<li class="bslib-nav-item nav-item form-inline">\\s*',
+      '<span class="navbar-version">',
+      expected_version
+    ),
+    html
+  ))
   expect_match(html, "Upload file", fixed = TRUE)
   expect_match(html, "Manual entry", fixed = TRUE)
   expect_match(html, "No Imputation", fixed = TRUE)
   expect_match(html, "Mean imputation", fixed = TRUE)
+  expect_match(html, "Manual entry is the default workflow", fixed = TRUE)
+  expect_match(html, "up to four subjects", fixed = TRUE)
+  expect_match(html, "Patient Value, Overall Classification, and IAH Risk Prediction", fixed = TRUE)
+  expect_match(html, "uploaded data use the existing per-column offset rule", fixed = TRUE)
+  expect_match(html, "Manual entry uses a paired same-analyte rule", fixed = TRUE)
+  expect_match(html, "Adjusted scoring shows the response profile plot", fixed = TRUE)
+  expect_match(html, "Unadjusted scoring shows only the clamp response contribution plot", fixed = TRUE)
+})
+
+test_that("navbar and uploaded result CSS preserve contrast and horizontal cards", {
+  skip_if_no_source_checkout()
+  css <- paste(readLines(project_file("www", "styles.css")), collapse = "\n")
+
+  expect_match(css, ".navbar-default .navbar-brand", fixed = TRUE)
+  expect_match(css, "font-size: 21px", fixed = TRUE)
+  expect_match(css, ".navbar-default .navbar-nav > .active > a", fixed = TRUE)
+  expect_match(css, "background: rgba(255, 255, 255, 0.24)", fixed = TRUE)
+  expect_match(css, "box-shadow: 0 -3px 0 #ffffff inset", fixed = TRUE)
+  expect_match(css, "color: #ffffff !important", fixed = TRUE)
+  expect_match(css, ".uploaded-results-page", fixed = TRUE)
+  expect_match(css, "flex-direction: column", fixed = TRUE)
+  expect_match(css, ".uploaded-subject-result .score-grid", fixed = TRUE)
+  expect_match(css, "grid-template-columns: repeat(3, minmax(0, 1fr))", fixed = TRUE)
 })
 
 test_that("manual entry UI uses readable clamp labels", {
@@ -157,6 +196,115 @@ test_that("single-subject cards use full awareness wording and risk gauge", {
   expect_match(iah_html, "risk-gauge iah", fixed = TRUE)
   expect_match(nah_html, "risk-gauge nah", fixed = TRUE)
   expect_match(unable_html, "risk-gauge unknown", fixed = TRUE)
+})
+
+test_that("uploaded score cards render four subjects per page", {
+  df <- score_fixture(value_45 = 8, value_90 = 1)
+  df <- df[rep(1, 5), , drop = FALSE]
+  df[1, required_45_cols()] <- 1
+  df[1, required_90_cols()] <- 1
+  scores <- calc_clamp_scores(df, participant_ids = paste0("S00", seq_len(5)))
+
+  html <- paste(as.character(uploaded_score_cards(scores)), collapse = "\n")
+
+  expect_match(html, "Subjects 1-4", fixed = TRUE)
+  expect_match(html, "Subjects 5-5", fixed = TRUE)
+  expect_match(html, "Subject ID: S001", fixed = TRUE)
+  expect_match(html, "Subject ID: S005", fixed = TRUE)
+  expect_match(html, "Patient Value", fixed = TRUE)
+  expect_match(html, "Overall Classification", fixed = TRUE)
+  expect_match(html, "Impaired awareness of hypoglycemia", fixed = TRUE)
+  expect_match(html, "Normal awareness of hypoglycemia", fixed = TRUE)
+  expect_match(html, "IAH Risk Prediction", fixed = TRUE)
+  expect_match(html, "risk-gauge iah", fixed = TRUE)
+  expect_match(html, "risk-gauge nah", fixed = TRUE)
+})
+
+test_that("upload results show card tabs and header download without rendered table", {
+  df <- score_fixture(value_45 = 8, value_90 = 1)
+  df <- df[rep(1, 5), , drop = FALSE]
+  path <- write_wide_csv_fixture(data.frame(
+    "Subject ID" = paste0("S00", seq_len(5)),
+    df,
+    check.names = FALSE
+  ))
+
+  shiny::testServer(iah_app_server, {
+    session$setInputs(
+      input_mode = "upload",
+      calculator_file = file_input_value(path, "five_subjects.csv")
+    )
+    session$setInputs(calculate = 1)
+
+    section_html <- paste(as.character(output$results_section), collapse = "\n")
+    cards_html <- paste(as.character(output$result_cards), collapse = "\n")
+
+    expect_match(section_html, "Download CSV", fixed = TRUE)
+    expect_no_match(section_html, "results_table", fixed = TRUE)
+    expect_no_match(section_html, "results_table_base", fixed = TRUE)
+    expect_match(cards_html, "Subjects 1-4", fixed = TRUE)
+    expect_match(cards_html, "Subject ID: S001", fixed = TRUE)
+    expect_match(cards_html, "Subject ID: S005", fixed = TRUE)
+  })
+})
+
+test_that("manual single-subject results keep CSV hidden", {
+  shiny::testServer(iah_app_server, {
+    set_many_inputs(session, manual_server_inputs())
+    session$setInputs(calculate = 1)
+
+    section_html <- paste(as.character(output$results_section), collapse = "\n")
+
+    expect_match(section_html, "Edit entered data", fixed = TRUE)
+    expect_no_match(section_html, "Download CSV", fixed = TRUE)
+  })
+})
+
+test_that("one-subject uploads still show upload cards and CSV download", {
+  path <- write_wide_csv_fixture()
+
+  shiny::testServer(iah_app_server, {
+    session$setInputs(
+      input_mode = "upload",
+      calculator_file = file_input_value(path, "one_subject.csv")
+    )
+    session$setInputs(calculate = 1)
+
+    section_html <- paste(as.character(output$results_section), collapse = "\n")
+    cards_html <- paste(as.character(output$result_cards), collapse = "\n")
+
+    expect_match(section_html, "Download CSV", fixed = TRUE)
+    expect_no_match(section_html, "Edit entered data", fixed = TRUE)
+    expect_match(cards_html, "Subjects 1-1", fixed = TRUE)
+    expect_match(cards_html, "Subject ID: S001", fixed = TRUE)
+  })
+})
+
+test_that("uploaded scoring still selects adjusted or unadjusted per subject", {
+  df <- score_fixture(value_45 = 8, value_90 = 1)
+  df <- df[rep(1, 2), , drop = FALSE]
+  df[2, required_90_cols()] <- NA_real_
+  path <- write_wide_csv_fixture(data.frame(
+    "Subject ID" = c("Adjusted subject", "Unadjusted subject"),
+    df,
+    check.names = FALSE
+  ))
+
+  shiny::testServer(iah_app_server, {
+    session$setInputs(
+      input_mode = "upload",
+      calculator_file = file_input_value(path, "mixed_methods.csv")
+    )
+    session$setInputs(calculate = 1)
+
+    result <- current_result()
+
+    expect_true(result$ok)
+    expect_equal(
+      result$scores$score_method,
+      c("adjusted_45_vs_90", "unadjusted_45")
+    )
+  })
 })
 
 test_that("upload scoring stores uploaded data for plot workflows", {
