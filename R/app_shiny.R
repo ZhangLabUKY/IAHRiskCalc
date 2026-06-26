@@ -65,11 +65,38 @@ manual_entry_ui <- function(values = NULL) {
   )
 }
 
-manual_example_values <- function(example = c("normal_awareness", "impaired_awareness")) {
+manual_example_values <- function(
+  example = c("example_subject_1", "example_subject_2", "example_subject_3")
+) {
   example <- match.arg(example)
   examples <- list(
-    normal_awareness = list(
-      participant_id = "Normal awareness example",
+    example_subject_1 = list(
+      participant_id = "Example subject 1",
+      values = c(
+        Heart_90 = 0, Heart_45 = 0,
+        Shaky_90 = 0, Shaky_45 = 2,
+        Sweaty_90 = 0, Sweaty_45 = 0,
+        Hungry_90 = 0, Hungry_45 = 0,
+        Tingling_90 = 0, Tingling_45 = 0,
+        Confused_90 = 0, Confused_45 = 0,
+        Tired_90 = 0, Tired_45 = 0,
+        Weak_90 = 0, Weak_45 = 0,
+        Warm_90 = 0, Warm_45 = 0,
+        Faint_90 = 0, Faint_45 = 0,
+        Dizzy_90 = 0, Dizzy_45 = 0,
+        Cortisol_90 = 7.4, Cortisol_45 = 19.5,
+        Glucagon_90 = 13, Glucagon_45 = 13,
+        Dopamine_90 = 130, Dopamine_45 = 130,
+        Epinephrine_90 = 196, Epinephrine_45 = 2390,
+        Norepinephrine_90 = 1394, Norepinephrine_45 = 1918,
+        FreeFattyAcids_90 = 0.04, FreeFattyAcids_45 = 0.06,
+        HGH_90 = 0.556, HGH_45 = 25.4,
+        PancreaticP_90 = 63, PancreaticP_45 = 394,
+        Insulin_90 = 68.2, Insulin_45 = 116
+      )
+    ),
+    example_subject_2 = list(
+      participant_id = "Example subject 2",
       values = c(
         Heart_90 = 0.2, Heart_45 = 1.9,
         Shaky_90 = 0.2, Shaky_45 = 3.9,
@@ -93,8 +120,8 @@ manual_example_values <- function(example = c("normal_awareness", "impaired_awar
         Insulin_90 = 93.29, Insulin_45 = 136.77
       )
     ),
-    impaired_awareness = list(
-      participant_id = "Impaired awareness example",
+    example_subject_3 = list(
+      participant_id = "Example subject 3",
       values = c(
         Heart_90 = 0.2, Heart_45 = 0.1,
         Shaky_90 = 0.2, Shaky_45 = 0.1,
@@ -125,6 +152,16 @@ manual_example_values <- function(example = c("normal_awareness", "impaired_awar
   selected
 }
 
+manual_example_button <- function(id, label) {
+  actionButton(
+    id,
+    label,
+    class = "btn-default manual-example-button",
+    width = "200px",
+    style = "width: 200px !important; min-width: 200px; height: 44px; margin: 0 !important;"
+  )
+}
+
 manual_example_controls <- function() {
   div(
     class = "manual-example-controls",
@@ -137,20 +174,9 @@ manual_example_controls <- function() {
     div(
       class = "manual-example-buttons",
       style = "display: flex; flex-direction: column; gap: 14px; width: 200px;",
-      actionButton(
-        "load_normal_example",
-        "Normal awareness",
-        class = "btn-default manual-example-button",
-        width = "200px",
-        style = "width: 200px !important; min-width: 200px; height: 44px; margin: 0 !important;"
-      ),
-      actionButton(
-        "load_impaired_example",
-        "Impaired awareness",
-        class = "btn-default manual-example-button",
-        width = "200px",
-        style = "width: 200px !important; min-width: 200px; height: 44px; margin: 0 !important;"
-      )
+      manual_example_button("load_example_subject_1", "Example subject 1"),
+      manual_example_button("load_example_subject_2", "Example subject 2"),
+      manual_example_button("load_example_subject_3", "Example subject 3")
     )
   )
 }
@@ -968,17 +994,25 @@ iah_app_server <- function(input, output, session) {
   )
 
   observeEvent(
-    input$load_normal_example,
+    input$load_example_subject_1,
     {
-      load_manual_example("normal_awareness")
+      load_manual_example("example_subject_1")
     },
     ignoreInit = TRUE
   )
 
   observeEvent(
-    input$load_impaired_example,
+    input$load_example_subject_2,
     {
-      load_manual_example("impaired_awareness")
+      load_manual_example("example_subject_2")
+    },
+    ignoreInit = TRUE
+  )
+
+  observeEvent(
+    input$load_example_subject_3,
+    {
+      load_manual_example("example_subject_3")
     },
     ignoreInit = TRUE
   )

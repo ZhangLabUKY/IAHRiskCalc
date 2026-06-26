@@ -50,8 +50,9 @@ test_that("app UI exposes the calculator, plot, and methods workflows", {
   expect_match(html, "Upload file", fixed = TRUE)
   expect_match(html, "Manual entry", fixed = TRUE)
   expect_match(html, "Example data", fixed = TRUE)
-  expect_match(html, "Normal awareness", fixed = TRUE)
-  expect_match(html, "Impaired awareness", fixed = TRUE)
+  expect_match(html, "Example subject 1", fixed = TRUE)
+  expect_match(html, "Example subject 2", fixed = TRUE)
+  expect_match(html, "Example subject 3", fixed = TRUE)
   expect_match(html, "width: 200px !important", fixed = TRUE)
   expect_match(html, "gap: 14px", fixed = TRUE)
   expect_match(html, "margin: 22px 0 32px", fixed = TRUE)
@@ -105,17 +106,18 @@ test_that("manual entry UI uses readable clamp labels", {
 })
 
 test_that("manual examples are complete and classify as intended", {
-  cases <- list(
-    normal_awareness = "NAH",
-    impaired_awareness = "IAH"
+  expected_groups <- list(
+    example_subject_1 = NULL,
+    example_subject_2 = "NAH",
+    example_subject_3 = "IAH"
   )
 
-  for (case in names(cases)) {
+  for (case in names(expected_groups)) {
     example <- manual_example_values(case)
 
     expect_equal(names(example$values), required_score_cols())
     expect_false(any(is.na(unlist(example$values, use.names = FALSE))))
-    expect_false(grepl("K21|K105", example$participant_id))
+    expect_match(example$participant_id, "^Example subject [1-3]$")
 
     df <- as.data.frame(example$values, check.names = FALSE)
     rownames(df) <- example$participant_id
@@ -127,7 +129,12 @@ test_that("manual examples are complete and classify as intended", {
     scores <- calc_clamp_scores(transformed$data)
 
     expect_true(transformed$ok)
-    expect_equal(scores$overall_group, cases[[case]])
+    if (!is.null(expected_groups[[case]])) {
+      expect_equal(scores$overall_group, expected_groups[[case]])
+    } else {
+      expect_false(is.na(scores$primary_score))
+      expect_true(scores$overall_group %in% c("IAH", "NAH"))
+    }
     expect_equal(scores$missing_value_count, 0)
   }
 })
@@ -154,22 +161,23 @@ test_that("manual example buttons populate cache and clear stale results", {
     expect_true(current_result()$ok)
     expect_false(is.null(profile_state()))
 
-    session$setInputs(load_normal_example = 1)
-    normal <- manual_entry_cache()
+    cached_values <- list()
+    for (index in 1:3) {
+      inputs <- list(index)
+      names(inputs) <- paste0("load_example_subject_", index)
+      do.call(session$setInputs, inputs)
+      example <- manual_entry_cache()
 
-    expect_equal(normal$participant_id, "Normal awareness example")
-    expect_equal(names(normal$values), required_score_cols())
-    expect_true(show_manual_entry())
-    expect_true(is.null(current_result()))
-    expect_true(is.null(profile_state()))
+      expect_equal(example$participant_id, paste("Example subject", index))
+      expect_equal(names(example$values), required_score_cols())
+      expect_true(show_manual_entry())
+      expect_true(is.null(current_result()))
+      expect_true(is.null(profile_state()))
 
-    session$setInputs(load_impaired_example = 1)
-    impaired <- manual_entry_cache()
-
-    expect_equal(impaired$participant_id, "Impaired awareness example")
-    expect_equal(names(impaired$values), required_score_cols())
-    expect_false(identical(normal$values, impaired$values))
-    expect_true(is.null(current_result()))
+      cached_values[[index]] <- example$values
+    }
+    expect_false(identical(cached_values[[1]], cached_values[[2]]))
+    expect_false(identical(cached_values[[2]], cached_values[[3]]))
   })
 })
 

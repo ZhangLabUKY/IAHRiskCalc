@@ -3049,7 +3049,7 @@
         "Maintainer": "Jeroen Ooms <jeroenooms@gmail.com>",
         "Repository": "CRAN",
         "Date/Publication": "2026-01-17 16:10:02 UTC",
-        "Built": "R 4.5.2; x86_64-w64-mingw32; 2026-02-22 02:31:10 UTC; windows",
+        "Built": "R 4.5.3; x86_64-w64-mingw32; 2026-06-01 02:47:10 UTC; windows",
         "Archs": "x64"
       }
     },
@@ -3165,10 +3165,10 @@
       "checksum": "7cc55b4df127175bb6fa18da932725f0"
     },
     "dev_notes/PROGRESS.md": {
-      "checksum": "5c733d93f1c7c50371b20e70f1bc2af7"
+      "checksum": "5fb7193423bc7bc45d91e0eb8d86138c"
     },
     "dev_notes/README.md": {
-      "checksum": "1b7b1d5f9126ddbff7aea0059b9f9ab9"
+      "checksum": "2f6ef578f400f5418bf89920d8f15f7f"
     },
     "docs/404.html": {
       "checksum": "85953a02b2b5444c83b1c639f2a75680"
@@ -3318,7 +3318,7 @@
       "checksum": "2b595d75820b2023e9807f2b889b0d48"
     },
     "R/app_shiny.R": {
-      "checksum": "62d7f6c8786e72226fd1ec2b2e438062"
+      "checksum": "7db225aa0fafbea8f7523dcbdfedd86c"
     },
     "R/calc_scores.R": {
       "checksum": "ac63e7ab6603b6d091992dbebc022da5"
@@ -3381,7 +3381,7 @@
       "checksum": "421a6c7e00ec881771a4f86af60ee8bd"
     },
     "tests/testthat/test-app_structure.R": {
-      "checksum": "1e6a4d0defcd2dbbc5b98a5a9140e703"
+      "checksum": "ba6cdc88934f634f218eab069230ffb9"
     },
     "tests/testthat/test-calc_scores.R": {
       "checksum": "3cf3b4ae472ee847645779fa76f3f3bb"
