@@ -13,12 +13,12 @@
 Source:
 [`DESCRIPTION`](https://github.com/ZhangLabUKY/IAHRiskCalc/blob/master/DESCRIPTION)
 
-Saraswat S, Zhang X (2026). *IAHRiskCalc: IAH Clamp-Based Risk
+Saraswat S, Zhang X (2026). *IAHRiskCalc: Clamp Response Phenotype
 Calculator*. R package version 0.0.1,
 <https://zhanglabuky.github.io/IAHRiskCalc/>.
 
     @Manual{,
-      title = {IAHRiskCalc: IAH Clamp-Based Risk Calculator},
+      title = {IAHRiskCalc: Clamp Response Phenotype Calculator},
       author = {Shubh Saraswat and Xiaohua Douglas Zhang},
       year = {2026},
       note = {R package version 0.0.1},

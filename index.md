@@ -1,10 +1,9 @@
 # IAHRiskCalc
 
-The goal of IAHRiskCalc is to classify clamp-based impaired awareness of
-hypoglycemia (IAH) status from symptom and physiological response values
-collected at 45 and 90 mg/dL.
-
-## Installation
+The goal of IAHRiskCalc is to calculate study-derived lower- and
+higher-response clamp phenotypes from symptom and physiological response
+values collected at 45 and 90 mg/dL. Their correspondence to clinical
+awareness status is provisional. \## Installation
 
 You can install the development version of IAHRiskCalc from
 [GitHub](https://github.com/ZhangLabUKY/IAHRiskCalc) with:
@@ -26,12 +25,13 @@ pak::pak("ZhangLabUKY/IAHRiskCalc")
   positive raw value in the current scoring dataset.
 - Calculates an unadjusted 45 mg/dL score and an adjusted 45-vs-90 score
   using all 20 variables.
-- Classifies scores greater than or equal to their thresholds as normal
-  awareness (`NAH`) and scores below threshold as impaired awareness.
-- Labels results as `IAH` when both scores are below threshold,
-  `Likely IAH` when exactly one score is below threshold, `NAH` when
-  both scores meet or exceed threshold, or unable to calculate when
-  required values are missing.
+- Reports scores greater than or equal to their thresholds as a
+  higher-response phenotype, with provisional correspondence to `NAH`,
+  and scores below threshold as a lower-response phenotype, with
+  provisional correspondence to `IAH`.
+- Keeps the study’s internal `IAH`/`NAH` coding while presenting
+  phenotype-first public results and CSV exports.
+- Accepts numeric symptom values, including decimals, without rounding.
 - Provides interactive Plotly plots and downloadable CSV/figure exports.
 
 ## Run locally
