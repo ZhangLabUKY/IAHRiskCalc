@@ -3,7 +3,9 @@
 The goal of IAHRiskCalc is to calculate study-derived lower- and
 higher-response clamp phenotypes from symptom and physiological response
 values collected at 45 and 90 mg/dL. Their correspondence to clinical
-awareness status is provisional. \## Installation
+awareness status is provisional.
+
+## Installation
 
 You can install the development version of IAHRiskCalc from
 [GitHub](https://github.com/ZhangLabUKY/IAHRiskCalc) with:
