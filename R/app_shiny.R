@@ -2,7 +2,7 @@ status_label <- function(value) {
   if (is.na(value)) {
     return("Unable to calculate")
   }
-  if (isTRUE(value)) "Impaired awareness range" else "Normal awareness range"
+  if (isTRUE(value)) "Lower-response phenotype" else "Higher-response phenotype"
 }
 
 manual_input_id <- function(var, level) {
@@ -54,7 +54,7 @@ manual_entry_ui <- function(values = NULL) {
   tagList(
     div(
       class = "app-message warn",
-      "Enter raw physiological values below. Physiological fields are log2-transformed before scoring."
+      "Enter numeric symptom scores and raw physiological values below. Symptom values are scored without rounding; physiological fields are log2-transformed before scoring."
     ),
     manual_entry_group_ui("Symptoms", SYMPTOM_VARIABLES, values),
     manual_entry_group_ui(
@@ -98,7 +98,7 @@ manual_example_values <- function(
     example_subject_2 = list(
       participant_id = "Example subject 2",
       values = c(
-        Heart_90 = 0.2, Heart_45 = 1.9,
+        Heart_90 = 0.2, Heart_45 = NA_real_,
         Shaky_90 = 0.2, Shaky_45 = 3.9,
         Sweaty_90 = 0.2, Sweaty_45 = 3.9,
         Hungry_90 = 2.2, Hungry_45 = 4.9,
@@ -109,7 +109,7 @@ manual_example_values <- function(
         Warm_90 = 2.2, Warm_45 = 1.9,
         Faint_90 = 0.2, Faint_45 = 0,
         Dizzy_90 = 0.2, Dizzy_45 = 0,
-        Cortisol_90 = 9.13, Cortisol_45 = 21.11,
+        Cortisol_90 = 9.13, Cortisol_45 = NA_real_,
         Glucagon_90 = 35.57, Glucagon_45 = 22.88,
         Dopamine_90 = 114.57, Dopamine_45 = 135.2,
         Epinephrine_90 = 128.15, Epinephrine_45 = 1660.77,
@@ -190,50 +190,54 @@ summary_card <- function(title, value, meta = NULL, class = "") {
   )
 }
 
-awareness_display_label <- function(value) {
-  value <- as.character(value[[1]])
-  if (is.na(value)) {
-    return("Unable to calculate")
+phenotype_display_label <- function(score) {
+  label <- score$response_phenotype_label[[1]]
+  if (!is.null(label) && !is.na(label) && nzchar(label)) {
+    return(as.character(label))
   }
-  if (value == "IAH") {
-    return("Impaired awareness of hypoglycemia")
-  }
-  if (value == "NAH") {
-    return("Normal awareness of hypoglycemia")
-  }
-  value
+  response_phenotype_label(response_phenotype_code(
+    score$primary_impaired_awareness[[1]]
+  ))
 }
 
-risk_prediction_class <- function(score) {
-  group <- as.character(score$overall_group[[1]])
-  if (is.na(score$primary_score) || is.na(group)) {
+provisional_awareness_label <- function(score) {
+  phenotype <- score$response_phenotype[[1]]
+  if (!is.null(phenotype) && !is.na(phenotype)) {
+    return(ifelse(phenotype == "lower_response", "IAH", "NAH"))
+  }
+  if (isTRUE(score$primary_impaired_awareness[[1]])) "IAH" else "NAH"
+}
+
+response_pattern_class <- function(score) {
+  phenotype <- score$response_phenotype[[1]]
+  if (is.na(score$primary_score) || is.null(phenotype) || is.na(phenotype)) {
     return("unknown")
   }
-  if (group == "IAH") {
-    return("iah")
+  if (phenotype == "lower_response") {
+    return("lower-response")
   }
-  if (group == "NAH") {
-    return("nah")
+  if (phenotype == "higher_response") {
+    return("higher-response")
   }
   "unknown"
 }
 
-risk_prediction_card <- function(score) {
-  gauge_class <- risk_prediction_class(score)
+response_pattern_card <- function(score) {
+  gauge_class <- response_pattern_class(score)
   div(
-    class = "score-card risk-prediction-card",
-    h4("IAH Risk Prediction"),
+    class = "score-card response-pattern-card",
+    h4("Response Pattern"),
     div(
-      class = paste("risk-gauge", gauge_class),
+      class = paste("response-gauge", gauge_class),
       div(
-        class = "risk-gauge-arc",
-        div(class = "risk-gauge-needle"),
-        div(class = "risk-gauge-knob")
+        class = "response-gauge-arc",
+        div(class = "response-gauge-needle"),
+        div(class = "response-gauge-knob")
       ),
       div(
-        class = "risk-gauge-labels",
-        tags$span("Low"),
-        tags$span("High")
+        class = "response-gauge-labels",
+        tags$span("Lower response"),
+        tags$span("Higher response")
       )
     )
   )
@@ -332,15 +336,15 @@ score_summary_cards <- function(scores) {
     class = "score-grid",
     summary_card("Subjects scored", counts$subjects_scored),
     summary_card(
-      "IAH",
+      "Lower-response phenotype",
       counts$impaired_awareness,
-      "Primary score below cutoff",
+      "Provisional correspondence to IAH",
       "risk-summary"
     ),
     summary_card(
-      "NAH",
+      "Higher-response phenotype",
       counts$normal_awareness,
-      "Primary score meets or exceeds cutoff"
+      "Provisional correspondence to NAH"
     ),
     summary_card(
       "Adjusted method",
@@ -388,18 +392,21 @@ single_score_cards <- function(score) {
     ),
     div(
       class = "score-card wide",
-      h4("Overall Classification"),
-      div(class = "classification", awareness_display_label(score$overall_group)),
+      h4("Response Phenotype"),
+      div(class = "classification", phenotype_display_label(score)),
       div(
         class = "score-meta",
         ifelse(
           is.na(score$primary_score),
           "Complete 45 mg/dL data are required.",
-          "Scores at or above cutoff classify as NAH."
+          paste(
+            "Provisional clinical-awareness correspondence:",
+            provisional_awareness_label(score)
+          )
         )
       )
     ),
-    risk_prediction_card(score)
+    response_pattern_card(score)
   )
 }
 
@@ -432,11 +439,11 @@ iah_app_ui <- function() {
     )),
     bslib::page_navbar(
       title = tagList(
-        tags$span(class = "navbar-title-text", "IAH Clamp-Based Risk Calculator"),
+        tags$span(class = "navbar-title-text", "Clamp Response Phenotype Calculator"),
         tags$span(class = "navbar-version", app_version_label())
       ),
       fillable = FALSE,
-      window_title = "IAH Clamp-Based Risk Calculator",
+      window_title = "Clamp Response Phenotype Calculator",
       navbar_options = bslib::navbar_options(collapsible = TRUE),
       bslib::nav_panel(
       "Calculator",
@@ -542,14 +549,14 @@ iah_app_ui <- function() {
         class = "methods",
         h3("Purpose"),
         p(
-          "This app supports research workflows for estimating impaired awareness of hypoglycemia from hyperinsulinemic clamp response data. It is intended for study-specific risk calculation and review, not standalone clinical diagnosis."
+          "This app supports research workflows for calculating study-derived clamp-response phenotypes from hyperinsulinemic clamp response data. Its lower- and higher-response phenotypes have provisional correspondence to clinical awareness status and are not standalone clinical diagnoses."
         ),
         h3("Calculator Workflow"),
         p(
           "Manual entry is the default workflow and scores one subject at a time. Uploaded CSV, XLS, or XLSX files can score multiple subjects in the same session."
         ),
         p(
-          "Single-subject and uploaded-subject results use the same patient-facing cards: Patient Value, Overall Classification, and IAH Risk Prediction. Uploaded results are grouped into pages of up to four subjects, and the scored CSV download is available from the Results header."
+          "Single-subject and uploaded-subject results use the same patient-facing cards: Patient Value, Response Phenotype, and Response Pattern. Each phenotype includes a clearly marked provisional clinical-awareness correspondence. Uploaded results are grouped into pages of up to four subjects, and the scored CSV download is available from the Results header."
         ),
         h3("Automated Preprocessing"),
         tags$ul(
@@ -560,7 +567,7 @@ iah_app_ui <- function() {
             "The Subject ID selector controls which uploaded column is used for subject labels in warnings, results, and plots."
           ),
           tags$li(
-            "Symptom values are used as entered. Physiological variables are treated as raw values and log2-transformed before scoring and plotting."
+            "Symptom values are numeric, including decimal values, and are used without rounding. Physiological variables are treated as raw values and log2-transformed before scoring and plotting."
           )
         ),
         h3("Log2 Offset Handling"),
@@ -584,10 +591,10 @@ iah_app_ui <- function() {
           ),
           tags$li(
             tags$strong("Mean imputation: "),
-            "missing required 45 mg/dL values are filled with column means from the current uploaded dataset after physiological preprocessing."
+            "manual entry uses built-in, post-transform study-reference means; uploads use column means from the current uploaded dataset after physiological preprocessing."
           )
         ),
-        h3("Risk Scores"),
+        h3("Response Scores"),
         p(
           "The app selects one primary score per subject based on the best available data."
         ),
@@ -605,8 +612,8 @@ iah_app_ui <- function() {
         tags$ul(
           tags$li("Adjusted 45-vs-90 cutoff: 25."),
           tags$li("Unadjusted 45 mg/dL cutoff: 66.5."),
-          tags$li("A primary score greater than or equal to its cutoff is classified as normal awareness of hypoglycemia."),
-          tags$li("A primary score below its cutoff is classified as impaired awareness of hypoglycemia.")
+          tags$li("A primary score greater than or equal to its cutoff is reported as a higher-response phenotype, with provisional correspondence to NAH."),
+          tags$li("A primary score below its cutoff is reported as a lower-response phenotype, with provisional correspondence to IAH.")
         ),
         h3("Plots and Exports"),
         p(
@@ -619,7 +626,7 @@ iah_app_ui <- function() {
         ),
         h3("Disclaimer"),
         p(
-          "This tool supports research workflows using clamp-derived response data and study-specific cutoffs. It is not a standalone clinical diagnostic tool."
+          "This tool supports research workflows using clamp-derived response data and study-specific cutoffs. The phenotype-to-awareness correspondence is provisional and the tool is not a standalone clinical diagnostic tool."
         )
       )
     ),
@@ -646,6 +653,7 @@ iah_app_server <- function(input, output, session) {
   pending_offset_payload <- reactiveVal(NULL)
   show_manual_entry <- reactiveVal(TRUE)
   manual_entry_cache <- reactiveVal(NULL)
+  loaded_manual_example <- reactiveVal(NULL)
 
   observeEvent(input$calculator_file, {
     offset_confirmed(FALSE)
@@ -669,6 +677,7 @@ iah_app_server <- function(input, output, session) {
     pending_offset_payload(NULL)
     profile_state(NULL)
     show_manual_entry(TRUE)
+    loaded_manual_example(NULL)
   })
 
   observeEvent(
@@ -736,6 +745,7 @@ iah_app_server <- function(input, output, session) {
   load_manual_example <- function(example) {
     selected <- manual_example_values(example)
     manual_entry_cache(selected)
+    loaded_manual_example(example)
     show_manual_entry(TRUE)
     offset_confirmed(FALSE)
     pending_offset_payload(NULL)
@@ -786,6 +796,12 @@ iah_app_server <- function(input, output, session) {
   output$missing_mode_ui <- renderUI({
     preflight <- current_preflight()
     if (is.null(preflight) || !isTRUE(preflight$has_missing_required)) {
+      if (
+        identical(input$input_mode, "manual") &&
+          !is.null(loaded_manual_example())
+      ) {
+        return(NULL)
+      }
       return(tagList(
         h3("Missing Values"),
         p(class = "small-note", "No missing required 45 mg/dL values detected.")
@@ -855,6 +871,9 @@ iah_app_server <- function(input, output, session) {
       if (is.null(reference_df) && identical(source, "upload")) {
         reference_df <- transform_result$data
       }
+      if (is.null(reference_df) && identical(source, "manual")) {
+        reference_df <- manual_imputation_reference()
+      }
       if (is.null(reference_df)) {
         return(list(
           ok = FALSE,
@@ -863,7 +882,7 @@ iah_app_server <- function(input, output, session) {
           transform = transform_result,
           audit = audit,
           source = source,
-          message = "Mean imputation for manual entry requires an uploaded dataset in the current session."
+          message = "A reference dataset is required for mean imputation."
         ))
       }
       scored_df <- impute_missing_with_means(scored_df, reference_df)
@@ -909,13 +928,9 @@ iah_app_server <- function(input, output, session) {
       ))
     }
 
-    reference_df <- NULL
-    if (!is.null(uploaded_state())) {
-      reference_df <- uploaded_state()$df
-    }
     list(
       df = manual_df(),
-      reference_df = reference_df,
+      reference_df = manual_imputation_reference(),
       audit = NULL,
       source = "manual"
     )
@@ -1286,7 +1301,7 @@ iah_app_server <- function(input, output, session) {
         result$scores$participant_id,
         collapse = "_"
       ))
-      paste0("iah_risk_results_", ids, ".csv")
+      paste0("clamp_response_phenotype_results_", ids, ".csv")
     },
     content = function(file) {
       result <- current_result()

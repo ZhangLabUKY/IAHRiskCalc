@@ -86,8 +86,38 @@ primary_cutoff_result <- function(score, cutoff) {
     "Unable to calculate",
     ifelse(
       score >= cutoff,
-      "Meets cutoff: NAH",
-      "Below cutoff: IAH"
+      "Meets cutoff: Higher-response phenotype",
+      "Below cutoff: Lower-response phenotype"
+    )
+  )
+}
+
+response_phenotype_code <- function(primary_impaired_awareness) {
+  ifelse(
+    is.na(primary_impaired_awareness),
+    NA_character_,
+    ifelse(primary_impaired_awareness, "lower_response", "higher_response")
+  )
+}
+
+response_phenotype_label <- function(phenotype) {
+  labels <- c(
+    lower_response = "Lower-response phenotype",
+    higher_response = "Higher-response phenotype"
+  )
+  out <- unname(labels[as.character(phenotype)])
+  out[is.na(phenotype)] <- "Unable to calculate"
+  out
+}
+
+provisional_awareness_correspondence <- function(phenotype) {
+  ifelse(
+    phenotype == "lower_response",
+    "Provisional correspondence to IAH",
+    ifelse(
+      phenotype == "higher_response",
+      "Provisional correspondence to NAH",
+      ""
     )
   )
 }
@@ -208,6 +238,11 @@ calc_clamp_scores <- function(
     !primary_normal_awareness
   )
   primary_status <- primary_cutoff_result(primary_score, primary_cutoff)
+  response_phenotype <- response_phenotype_code(primary_impaired_awareness)
+  phenotype_label <- response_phenotype_label(response_phenotype)
+  provisional_correspondence <- provisional_awareness_correspondence(
+    response_phenotype
+  )
 
   overall_group <- ifelse(
     is.na(primary_impaired_awareness),
@@ -243,6 +278,9 @@ calc_clamp_scores <- function(
     primary_impaired_awareness = primary_impaired_awareness,
     primary_status = primary_status,
     primary_cutoff_result = primary_status,
+    response_phenotype = response_phenotype,
+    response_phenotype_label = phenotype_label,
+    provisional_awareness_correspondence = provisional_correspondence,
     imputation_used = FALSE,
     imputed_variables = "",
     overall_group = overall_group,
@@ -292,7 +330,8 @@ format_score_results_for_display <- function(scores) {
     "primary_cutoff",
     "primary_cutoff_result",
     "imputation_used",
-    "overall_group"
+    "response_phenotype_label",
+    "provisional_awareness_correspondence"
   )
   missing_cols <- setdiff(expected_cols, names(scores))
 
@@ -306,7 +345,8 @@ format_score_results_for_display <- function(scores) {
     "Score" = round(scores$primary_score, 2),
     "Cutoff" = round(scores$primary_cutoff, 2),
     "Cutoff result" = scores$primary_cutoff_result,
-    "Awareness status" = scores$overall_group,
+    "Response phenotype" = scores$response_phenotype_label,
+    "Provisional clinical-awareness correspondence" = scores$provisional_awareness_correspondence,
     check.names = FALSE
   )
 }

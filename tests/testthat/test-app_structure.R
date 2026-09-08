@@ -24,13 +24,25 @@ set_many_inputs <- function(session, values) {
   do.call(session$setInputs, values)
 }
 
+manual_example_server_inputs <- function(example) {
+  values <- list(
+    input_mode = "manual",
+    manual_participant_id = example$participant_id
+  )
+  for (field in names(example$values)) {
+    pieces <- strsplit(field, "_", fixed = TRUE)[[1]]
+    values[[manual_input_id(pieces[[1]], pieces[[2]])]] <- example$values[[field]]
+  }
+  values
+}
+
 test_that("app UI exposes the calculator, plot, and methods workflows", {
   html <- paste(as.character(iah_app_ui()), collapse = "\n")
   expected_version <- app_version_label()
 
   expect_match(html, "navbar-title-text", fixed = TRUE)
   expect_match(html, "navbar-brand", fixed = TRUE)
-  expect_match(html, "IAH Clamp-Based Risk Calculator", fixed = TRUE)
+  expect_match(html, "Clamp Response Phenotype Calculator", fixed = TRUE)
   expect_match(html, "Calculator", fixed = TRUE)
   expect_match(html, "Plots", fixed = TRUE)
   expect_match(html, "Methods", fixed = TRUE)
@@ -62,7 +74,10 @@ test_that("app UI exposes the calculator, plot, and methods workflows", {
   expect_match(html, "Mean imputation", fixed = TRUE)
   expect_match(html, "Manual entry is the default workflow", fixed = TRUE)
   expect_match(html, "up to four subjects", fixed = TRUE)
-  expect_match(html, "Patient Value, Overall Classification, and IAH Risk Prediction", fixed = TRUE)
+  expect_match(html, "Patient Value, Response Phenotype, and Response Pattern", fixed = TRUE)
+  expect_match(html, "provisional clinical-awareness correspondence", fixed = TRUE)
+  expect_match(html, "including decimal values", fixed = TRUE)
+  expect_match(html, "built-in, post-transform study-reference means", fixed = TRUE)
   expect_match(html, "uploaded data use the existing per-column offset rule", fixed = TRUE)
   expect_match(html, "Manual entry uses a paired same-analyte rule", fixed = TRUE)
   expect_match(html, "Adjusted scoring shows the response profile plot", fixed = TRUE)
@@ -103,20 +118,27 @@ test_that("manual entry UI uses readable clamp labels", {
   expect_match(html, "Tired/Drowsy", fixed = TRUE)
   expect_match(html, "Free fatty acids", fixed = TRUE)
   expect_match(html, "Pancreatic Polypeptide", fixed = TRUE)
+  expect_match(html, "step=\"0.1\"", fixed = TRUE)
+  expect_match(html, "Symptom values are scored without rounding", fixed = TRUE)
 })
 
-test_that("manual examples are complete and classify as intended", {
+test_that("manual examples use the intended complete and imputation paths", {
   expected_groups <- list(
     example_subject_1 = NULL,
     example_subject_2 = "NAH",
     example_subject_3 = "IAH"
+  )
+  missing_fields <- list(
+    example_subject_1 = character(0),
+    example_subject_2 = c("Heart_45", "Cortisol_45"),
+    example_subject_3 = character(0)
   )
 
   for (case in names(expected_groups)) {
     example <- manual_example_values(case)
 
     expect_equal(names(example$values), required_score_cols())
-    expect_false(any(is.na(unlist(example$values, use.names = FALSE))))
+    expect_equal(names(example$values)[is.na(unlist(example$values))], missing_fields[[case]])
     expect_match(example$participant_id, "^Example subject [1-3]$")
 
     df <- as.data.frame(example$values, check.names = FALSE)
@@ -126,16 +148,32 @@ test_that("manual examples are complete and classify as intended", {
       allow_offset = FALSE,
       offset_method = "paired"
     )
-    scores <- calc_clamp_scores(transformed$data)
-
     expect_true(transformed$ok)
-    if (!is.null(expected_groups[[case]])) {
+    if (length(missing_fields[[case]]) > 0) {
+      strict_scores <- calc_clamp_scores(transformed$data)
+      expect_equal(
+        strict_scores$overall_group,
+        "Unable to calculate; missing required values"
+      )
+
+      imputed <- impute_missing_with_means(
+        transformed$data,
+        manual_imputation_reference()
+      )
+      scores <- apply_imputation_metadata(calc_clamp_scores(imputed), imputed)
+      expect_true(scores$imputation_used)
+      expect_equal(scores$imputed_variables, "Heart_45, Cortisol_45")
       expect_equal(scores$overall_group, expected_groups[[case]])
     } else {
+      scores <- calc_clamp_scores(transformed$data)
       expect_false(is.na(scores$primary_score))
-      expect_true(scores$overall_group %in% c("IAH", "NAH"))
+      if (!is.null(expected_groups[[case]])) {
+        expect_equal(scores$overall_group, expected_groups[[case]])
+      } else {
+        expect_true(scores$overall_group %in% c("IAH", "NAH"))
+      }
+      expect_equal(scores$missing_value_count, 0)
     }
-    expect_equal(scores$missing_value_count, 0)
   }
 })
 
@@ -170,6 +208,7 @@ test_that("manual example buttons populate cache and clear stale results", {
 
       expect_equal(example$participant_id, paste("Example subject", index))
       expect_equal(names(example$values), required_score_cols())
+      expect_equal(loaded_manual_example(), paste0("example_subject_", index))
       expect_true(show_manual_entry())
       expect_true(is.null(current_result()))
       expect_true(is.null(profile_state()))
@@ -179,6 +218,62 @@ test_that("manual example buttons populate cache and clear stale results", {
     expect_false(identical(cached_values[[1]], cached_values[[2]]))
     expect_false(identical(cached_values[[2]], cached_values[[3]]))
   })
+})
+
+test_that("manual examples show missing-data controls only when values are missing", {
+  shiny::testServer(iah_app_server, {
+    complete_example <- manual_example_values("example_subject_1")
+    set_many_inputs(session, manual_example_server_inputs(complete_example))
+    loaded_manual_example("example_subject_1")
+    session$flushReact()
+    expect_null(output$missing_mode_ui)
+
+    incomplete_example <- manual_example_values("example_subject_2")
+    set_many_inputs(session, manual_example_server_inputs(incomplete_example))
+    loaded_manual_example("example_subject_2")
+    session$flushReact()
+    missing_html <- paste(as.character(output$missing_mode_ui), collapse = "\n")
+    expect_match(missing_html, "No Imputation", fixed = TRUE)
+    expect_match(missing_html, "Mean imputation", fixed = TRUE)
+
+    session$setInputs(calculate = 1)
+    strict_result <- current_result()
+    expect_true(strict_result$ok)
+    expect_equal(
+      strict_result$scores$overall_group,
+      "Unable to calculate; missing required values"
+    )
+    expect_false(strict_result$scores$imputation_used)
+
+    session$setInputs(missing_mode = "impute", calculate = 2)
+    imputed_result <- current_result()
+    expect_true(imputed_result$ok)
+    expect_true(imputed_result$scores$imputation_used)
+    expect_equal(imputed_result$scores$imputed_variables, "Heart_45, Cortisol_45")
+    expect_equal(imputed_result$scores$overall_group, "NAH")
+    expect_equal(
+      imputed_result$scores$response_phenotype_label,
+      "Higher-response phenotype"
+    )
+  })
+})
+
+test_that("manual inputs preserve decimal symptom values and use static reference code", {
+  decimal_inputs <- manual_server_inputs()
+  decimal_inputs[[manual_input_id("Heart", 45)]] <- 1.5
+
+  shiny::testServer(iah_app_server, {
+    set_many_inputs(session, decimal_inputs)
+    expect_equal(manual_df()$Heart_45, 1.5)
+  })
+
+  skip_if_no_source_checkout()
+  imputation_source <- paste(
+    readLines(project_file("R", "imputation.R")),
+    collapse = "\n"
+  )
+  expect_match(imputation_source, "manual_imputation_reference", fixed = TRUE)
+  expect_no_match(imputation_source, "Reference-Data", fixed = TRUE)
 })
 
 test_that("manual mode initializes safely before fields are populated", {
@@ -243,25 +338,34 @@ test_that("manual scoring stores profile state for plot workflows", {
   })
 })
 
-test_that("single-subject cards use full awareness wording and risk gauge", {
+test_that("single-subject cards use phenotype wording and provisional correspondence", {
   iah_score <- data.frame(
     primary_score = 16,
     primary_cutoff = 25,
     primary_impaired_awareness = TRUE,
-    primary_cutoff_result = "Below cutoff: IAH",
+    primary_cutoff_result = "Below cutoff: Lower-response phenotype",
+    response_phenotype = "lower_response",
+    response_phenotype_label = "Lower-response phenotype",
+    provisional_awareness_correspondence = "Provisional correspondence to IAH",
     overall_group = "IAH",
     check.names = FALSE
   )
   nah_score <- iah_score
   nah_score$primary_score <- 30
   nah_score$primary_impaired_awareness <- FALSE
-  nah_score$primary_cutoff_result <- "Meets cutoff: NAH"
+  nah_score$primary_cutoff_result <- "Meets cutoff: Higher-response phenotype"
+  nah_score$response_phenotype <- "higher_response"
+  nah_score$response_phenotype_label <- "Higher-response phenotype"
+  nah_score$provisional_awareness_correspondence <- "Provisional correspondence to NAH"
   nah_score$overall_group <- "NAH"
   unable_score <- iah_score
   unable_score$primary_score <- NA_real_
   unable_score$primary_cutoff <- NA_real_
   unable_score$primary_impaired_awareness <- NA
   unable_score$primary_cutoff_result <- "Unable to calculate"
+  unable_score$response_phenotype <- NA_character_
+  unable_score$response_phenotype_label <- "Unable to calculate"
+  unable_score$provisional_awareness_correspondence <- ""
   unable_score$overall_group <- "Unable to calculate; missing required values"
 
   iah_html <- paste(as.character(single_score_cards(iah_score)), collapse = "\n")
@@ -271,12 +375,20 @@ test_that("single-subject cards use full awareness wording and risk gauge", {
     collapse = "\n"
   )
 
-  expect_match(iah_html, "Impaired awareness of hypoglycemia", fixed = TRUE)
-  expect_match(nah_html, "Normal awareness of hypoglycemia", fixed = TRUE)
-  expect_match(iah_html, "IAH Risk Prediction", fixed = TRUE)
-  expect_match(iah_html, "risk-gauge iah", fixed = TRUE)
-  expect_match(nah_html, "risk-gauge nah", fixed = TRUE)
-  expect_match(unable_html, "risk-gauge unknown", fixed = TRUE)
+  expect_match(iah_html, "Response Phenotype", fixed = TRUE)
+  expect_match(iah_html, "Lower-response phenotype", fixed = TRUE)
+  expect_match(nah_html, "Higher-response phenotype", fixed = TRUE)
+  expect_match(
+    iah_html,
+    "Provisional clinical-awareness correspondence: IAH",
+    fixed = TRUE
+  )
+  expect_match(iah_html, "Response Pattern", fixed = TRUE)
+  expect_match(iah_html, "Lower response", fixed = TRUE)
+  expect_match(iah_html, "Higher response", fixed = TRUE)
+  expect_match(iah_html, "response-gauge lower-response", fixed = TRUE)
+  expect_match(nah_html, "response-gauge higher-response", fixed = TRUE)
+  expect_match(unable_html, "response-gauge unknown", fixed = TRUE)
 })
 
 test_that("uploaded score cards render four subjects per page", {
@@ -293,12 +405,12 @@ test_that("uploaded score cards render four subjects per page", {
   expect_match(html, "Subject ID: S001", fixed = TRUE)
   expect_match(html, "Subject ID: S005", fixed = TRUE)
   expect_match(html, "Patient Value", fixed = TRUE)
-  expect_match(html, "Overall Classification", fixed = TRUE)
-  expect_match(html, "Impaired awareness of hypoglycemia", fixed = TRUE)
-  expect_match(html, "Normal awareness of hypoglycemia", fixed = TRUE)
-  expect_match(html, "IAH Risk Prediction", fixed = TRUE)
-  expect_match(html, "risk-gauge iah", fixed = TRUE)
-  expect_match(html, "risk-gauge nah", fixed = TRUE)
+  expect_match(html, "Response Phenotype", fixed = TRUE)
+  expect_match(html, "Lower-response phenotype", fixed = TRUE)
+  expect_match(html, "Higher-response phenotype", fixed = TRUE)
+  expect_match(html, "Response Pattern", fixed = TRUE)
+  expect_match(html, "response-gauge lower-response", fixed = TRUE)
+  expect_match(html, "response-gauge higher-response", fixed = TRUE)
 })
 
 test_that("upload results show card tabs and header download without rendered table", {
@@ -466,7 +578,7 @@ test_that("missing values use no imputation by default and mean imputation when 
   })
 })
 
-test_that("multi-subject summary cards show impaired-range counts", {
+test_that("multi-subject summary cards show phenotype counts", {
   scores <- data.frame(
     primary_impaired_awareness = c(TRUE, TRUE, FALSE, FALSE, NA),
     score_method = c(
@@ -481,10 +593,10 @@ test_that("multi-subject summary cards show impaired-range counts", {
 
   html <- paste(as.character(score_summary_cards(scores)), collapse = "\n")
 
-  expect_match(html, "IAH", fixed = TRUE)
-  expect_match(html, "NAH", fixed = TRUE)
-  expect_match(html, "Primary score below cutoff", fixed = TRUE)
-  expect_match(html, "Primary score meets or exceeds cutoff", fixed = TRUE)
+  expect_match(html, "Lower-response phenotype", fixed = TRUE)
+  expect_match(html, "Higher-response phenotype", fixed = TRUE)
+  expect_match(html, "Provisional correspondence to IAH", fixed = TRUE)
+  expect_match(html, "Provisional correspondence to NAH", fixed = TRUE)
   expect_match(html, "Adjusted method", fixed = TRUE)
   expect_match(html, "Unadjusted method", fixed = TRUE)
   expect_match(html, "score-value\">2<", fixed = TRUE)

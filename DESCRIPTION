@@ -1,12 +1,12 @@
 Package: IAHRiskCalc
-Title: IAH Clamp-Based Risk Calculator
+Title: Clamp Response Phenotype Calculator
 Version: 0.0.1
 Authors@R: c(
     person("Shubh", "Saraswat", email = "shubh.saraswat00@gmail.com", role = c("cre", "aut", "cph"),
     comment = c(ORCID = "0009-0009-2359-1484")),
     person("Xiaohua Douglas", "Zhang", email = "douglas.zhang@uky.edu", role = "aut",
     comment = c(ORCID = "0000-0002-2486-7931")))
-Description: Shiny application for classifying clamp-based impaired awareness of hypoglycemia status from uploaded or manually entered physiological and symptom response data.
+Description: Shiny application for calculating study-derived clamp-response phenotypes from uploaded or manually entered physiological and symptom response data, with provisional correspondence to clinical awareness status.
 License: GPL (>= 2)
 URL: https://zhanglabuky.github.io/IAHRiskCalc/, https://github.com/ZhangLabUKY/IAHRiskCalc
 BugReports: https://github.com/ZhangLabUKY/IAHRiskCalc/issues
@@ -28,7 +28,7 @@ Suggests:
     htmlwidgets,
     testthat,
     writexl
-RoxygenNote: 7.3.3
 Config/testthat/edition: 3
 NeedsCompilation: no
 Language: en-US
+Config/roxygen2/version: 8.1.0

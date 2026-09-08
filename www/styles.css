@@ -448,29 +448,29 @@ body {
   line-height: 1.2;
 }
 
-.risk-prediction-card {
+.response-pattern-card {
   text-align: center;
 }
 
-.risk-gauge {
+.response-gauge {
   --needle-angle: 0deg;
   margin: 6px auto 0;
   max-width: 190px;
 }
 
-.risk-gauge.nah {
+.response-gauge.lower-response {
   --needle-angle: -52deg;
 }
 
-.risk-gauge.iah {
+.response-gauge.higher-response {
   --needle-angle: 52deg;
 }
 
-.risk-gauge.unknown {
+.response-gauge.unknown {
   --needle-angle: 0deg;
 }
 
-.risk-gauge-arc {
+.response-gauge-arc {
   position: relative;
   width: 180px;
   max-width: 100%;
@@ -480,14 +480,14 @@ body {
   border-radius: 180px 180px 0 0;
   background: conic-gradient(
     from 270deg at 50% 100%,
-    #2f9e44 0deg 62deg,
-    #f2c94c 62deg 118deg,
-    #d64545 118deg 180deg,
+    #4c78a8 0deg 62deg,
+    #e0b247 62deg 118deg,
+    #2f9e83 118deg 180deg,
     transparent 180deg 360deg
   );
 }
 
-.risk-gauge-arc::after {
+.response-gauge-arc::after {
   content: "";
   position: absolute;
   left: 28px;
@@ -498,7 +498,7 @@ body {
   background: #fbfdff;
 }
 
-.risk-gauge-needle {
+.response-gauge-needle {
   position: absolute;
   left: 50%;
   bottom: 0;
@@ -512,7 +512,7 @@ body {
   box-shadow: 0 1px 2px rgba(23, 32, 51, 0.28);
 }
 
-.risk-gauge-knob {
+.response-gauge-knob {
   position: absolute;
   left: 50%;
   bottom: -7px;
@@ -525,7 +525,7 @@ body {
   box-shadow: 0 1px 3px rgba(23, 32, 51, 0.3);
 }
 
-.risk-gauge-labels {
+.response-gauge-labels {
   display: flex;
   justify-content: space-between;
   margin-top: 4px;
