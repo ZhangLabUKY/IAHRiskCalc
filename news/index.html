@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">IAHRiskCalc</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -41,6 +41,14 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.0.2" id="iahriskcalc-002">IAHRiskCalc 0.0.2<a class="anchor" aria-label="anchor" href="#iahriskcalc-002"></a></h2>
+<ul><li>Reframed the public Shiny application as the Clamp Response Phenotype Calculator, reporting study-derived lower- and higher-response phenotypes rather than clinical awareness classifications.</li>
+<li>Retained <code>IAH</code> and <code>NAH</code> only as clearly labeled provisional clinical-awareness correspondences; scoring equations, cutoffs, and internal classification codes are unchanged.</li>
+<li>Clarified that manual symptom entries are numeric, may include decimal values, and are scored without rounding; raw physiological entries continue to be log2-transformed before scoring.</li>
+<li>Added three static manual-entry example subjects. Complete examples proceed directly to calculation, while the incomplete example demonstrates the No Imputation and Mean imputation workflows with six missing 45 mg/dL fields.</li>
+<li>Added built-in post-transform study-reference means for manual mean imputation, without runtime reads from <code>Reference-Data/</code>.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.0.1" id="iahriskcalc-001">IAHRiskCalc 0.0.1<a class="anchor" aria-label="anchor" href="#iahriskcalc-001"></a></h2>
 <ul><li>Built the initial IAH clamp-based risk calculator as a Shiny app with manual-entry and uploaded-file workflows.</li>
 <li>Added parsing for uploaded <code>.csv</code>, <code>.xls</code>, and <code>.xlsx</code> clamp files in canonical wide and raw grouped workbook layouts.</li>
@@ -56,7 +64,8 @@
 <li>Refreshed Methods documentation, visual styling, downloadable figure readability, and functional test coverage for calculations, parsing, preprocessing, plotting, exports, and Shiny server behavior.</li>
 <li>Fixed installed-package checks by declaring <code>bslib</code> in package imports and qualifying Shiny tag helpers for R CMD check compatibility.</li>
 </ul></div>
-  </main></div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside></div>
 
 
     <footer><div class="pkgdown-footer-left">
