@@ -130,7 +130,10 @@ test_that("manual examples use the intended complete and imputation paths", {
   )
   missing_fields <- list(
     example_subject_1 = character(0),
-    example_subject_2 = c("Heart_45", "Cortisol_45"),
+    example_subject_2 = c(
+      "Heart_45", "Tired_45", "Faint_45", "Dizzy_45",
+      "Cortisol_45", "FreeFattyAcids_45"
+    ),
     example_subject_3 = character(0)
   )
 
@@ -162,7 +165,10 @@ test_that("manual examples use the intended complete and imputation paths", {
       )
       scores <- apply_imputation_metadata(calc_clamp_scores(imputed), imputed)
       expect_true(scores$imputation_used)
-      expect_equal(scores$imputed_variables, "Heart_45, Cortisol_45")
+      expect_equal(
+        scores$imputed_variables,
+        paste(missing_fields[[case]], collapse = ", ")
+      )
       expect_equal(scores$overall_group, expected_groups[[case]])
     } else {
       scores <- calc_clamp_scores(transformed$data)
@@ -249,7 +255,16 @@ test_that("manual examples show missing-data controls only when values are missi
     imputed_result <- current_result()
     expect_true(imputed_result$ok)
     expect_true(imputed_result$scores$imputation_used)
-    expect_equal(imputed_result$scores$imputed_variables, "Heart_45, Cortisol_45")
+    expect_equal(
+      imputed_result$scores$imputed_variables,
+      paste(
+        c(
+          "Heart_45", "Tired_45", "Faint_45", "Dizzy_45",
+          "Cortisol_45", "FreeFattyAcids_45"
+        ),
+        collapse = ", "
+      )
+    )
     expect_equal(imputed_result$scores$overall_group, "NAH")
     expect_equal(
       imputed_result$scores$response_phenotype_label,
