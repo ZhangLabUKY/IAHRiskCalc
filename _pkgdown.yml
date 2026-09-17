@@ -3,9 +3,9 @@ template:
   bootstrap: 5
   light-switch: yes
 home:
-  title: Welcome to IAHRiskCalc
-  tagline: An R Shiny application for calculating clamp-based impaired awareness of
-    hypoglycemia risk scores.
+  title: Clamp Response Phenotype Calculator
+  tagline: An R Shiny application for calculating study-derived lower- and
+    higher-response clamp phenotypes with provisional clinical-awareness correspondence.
 navbar:
   title: IAHRiskCalc
   left:
@@ -18,4 +18,3 @@ footer:
   right: Built with pkgdown
 development:
   mode: auto
-

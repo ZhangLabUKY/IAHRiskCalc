@@ -1,6 +1,6 @@
 Package: IAHRiskCalc
 Title: Clamp Response Phenotype Calculator
-Version: 0.0.1
+Version: 0.0.2
 Authors@R: c(
     person("Shubh", "Saraswat", email = "shubh.saraswat00@gmail.com", role = c("cre", "aut", "cph"),
     comment = c(ORCID = "0009-0009-2359-1484")),
