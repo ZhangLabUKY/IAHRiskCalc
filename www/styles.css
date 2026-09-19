@@ -448,7 +448,7 @@ body {
   line-height: 1.2;
 }
 
-.response-pattern-card {
+.clamp-risk-card {
   text-align: center;
 }
 
@@ -458,11 +458,11 @@ body {
   max-width: 190px;
 }
 
-.response-gauge.lower-response {
+.response-gauge.low-risk {
   --needle-angle: -52deg;
 }
 
-.response-gauge.higher-response {
+.response-gauge.high-risk {
   --needle-angle: 52deg;
 }
 
@@ -480,9 +480,9 @@ body {
   border-radius: 180px 180px 0 0;
   background: conic-gradient(
     from 270deg at 50% 100%,
-    #4c78a8 0deg 62deg,
+    #2f9e44 0deg 62deg,
     #e0b247 62deg 118deg,
-    #2f9e83 118deg 180deg,
+    #d64545 118deg 180deg,
     transparent 180deg 360deg
   );
 }

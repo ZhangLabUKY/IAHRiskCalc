@@ -86,9 +86,25 @@ primary_cutoff_result <- function(score, cutoff) {
     "Unable to calculate",
     ifelse(
       score >= cutoff,
-      "Meets cutoff: Higher-response phenotype",
-      "Below cutoff: Lower-response phenotype"
+      "Meets cutoff: Clamp-based NAH",
+      "Below cutoff: Clamp-based IAH"
     )
+  )
+}
+
+clamp_based_awareness_classification <- function(primary_impaired_awareness) {
+  ifelse(
+    is.na(primary_impaired_awareness),
+    "Unable to calculate",
+    ifelse(primary_impaired_awareness, "Clamp-based IAH", "Clamp-based NAH")
+  )
+}
+
+clamp_based_classification_scope <- function(primary_impaired_awareness) {
+  ifelse(
+    is.na(primary_impaired_awareness),
+    "",
+    "Study-derived from controlled hypoglycemic clamp data; not a clinical diagnosis."
   )
 }
 
@@ -238,6 +254,12 @@ calc_clamp_scores <- function(
     !primary_normal_awareness
   )
   primary_status <- primary_cutoff_result(primary_score, primary_cutoff)
+  clamp_based_classification <- clamp_based_awareness_classification(
+    primary_impaired_awareness
+  )
+  classification_scope <- clamp_based_classification_scope(
+    primary_impaired_awareness
+  )
   response_phenotype <- response_phenotype_code(primary_impaired_awareness)
   phenotype_label <- response_phenotype_label(response_phenotype)
   provisional_correspondence <- provisional_awareness_correspondence(
@@ -278,6 +300,8 @@ calc_clamp_scores <- function(
     primary_impaired_awareness = primary_impaired_awareness,
     primary_status = primary_status,
     primary_cutoff_result = primary_status,
+    clamp_based_awareness_classification = clamp_based_classification,
+    classification_scope = classification_scope,
     response_phenotype = response_phenotype,
     response_phenotype_label = phenotype_label,
     provisional_awareness_correspondence = provisional_correspondence,
@@ -330,8 +354,8 @@ format_score_results_for_display <- function(scores) {
     "primary_cutoff",
     "primary_cutoff_result",
     "imputation_used",
-    "response_phenotype_label",
-    "provisional_awareness_correspondence"
+    "clamp_based_awareness_classification",
+    "classification_scope"
   )
   missing_cols <- setdiff(expected_cols, names(scores))
 
@@ -345,8 +369,8 @@ format_score_results_for_display <- function(scores) {
     "Score" = round(scores$primary_score, 2),
     "Cutoff" = round(scores$primary_cutoff, 2),
     "Cutoff result" = scores$primary_cutoff_result,
-    "Response phenotype" = scores$response_phenotype_label,
-    "Provisional clinical-awareness correspondence" = scores$provisional_awareness_correspondence,
+    "Clamp-based awareness classification" = scores$clamp_based_awareness_classification,
+    "Classification scope" = scores$classification_scope,
     check.names = FALSE
   )
 }

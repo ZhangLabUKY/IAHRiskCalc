@@ -21,7 +21,15 @@ test_that("calc_clamp_scores uses all 45 and paired 90 columns", {
   expect_equal(scores$score_method, "adjusted_45_vs_90")
   expect_equal(scores$primary_score, 60)
   expect_equal(scores$primary_cutoff, ADJUSTED_45_VS_90_CUTOFF)
-  expect_equal(scores$primary_cutoff_result, "Meets cutoff: Higher-response phenotype")
+  expect_equal(scores$primary_cutoff_result, "Meets cutoff: Clamp-based NAH")
+  expect_equal(
+    scores$clamp_based_awareness_classification,
+    "Clamp-based NAH"
+  )
+  expect_equal(
+    scores$classification_scope,
+    "Study-derived from controlled hypoglycemic clamp data; not a clinical diagnosis."
+  )
   expect_equal(scores$response_phenotype, "higher_response")
   expect_equal(scores$response_phenotype_label, "Higher-response phenotype")
   expect_equal(
@@ -46,7 +54,11 @@ test_that("adjusted score drives classification when both levels are complete", 
   expect_true(scores$discordant_flag)
   expect_equal(scores$score_method, "adjusted_45_vs_90")
   expect_equal(scores$primary_score, 0)
-  expect_equal(scores$primary_cutoff_result, "Below cutoff: Lower-response phenotype")
+  expect_equal(scores$primary_cutoff_result, "Below cutoff: Clamp-based IAH")
+  expect_equal(
+    scores$clamp_based_awareness_classification,
+    "Clamp-based IAH"
+  )
   expect_equal(scores$response_phenotype, "lower_response")
   expect_equal(scores$overall_group, "IAH")
 })
@@ -64,7 +76,7 @@ test_that("unadjusted score is used when 90 mg/dL values are unavailable", {
   expect_equal(scores$score_method, "unadjusted_45")
   expect_equal(scores$primary_score, 80)
   expect_equal(scores$primary_cutoff, UNADJUSTED_45_CUTOFF)
-  expect_equal(scores$primary_cutoff_result, "Meets cutoff: Higher-response phenotype")
+  expect_equal(scores$primary_cutoff_result, "Meets cutoff: Clamp-based NAH")
   expect_equal(scores$overall_group, "NAH")
 })
 
@@ -85,7 +97,7 @@ test_that("below-threshold cases are labelled IAH", {
   expect_true(scores$unadjusted_at_risk)
   expect_true(scores$adjusted_at_risk)
   expect_false(scores$discordant_flag)
-  expect_equal(scores$primary_cutoff_result, "Below cutoff: Lower-response phenotype")
+  expect_equal(scores$primary_cutoff_result, "Below cutoff: Clamp-based IAH")
   expect_equal(scores$overall_group, "IAH")
 })
 
@@ -151,7 +163,7 @@ test_that("manual mean imputation uses a complete built-in reference", {
   expect_equal(attr(imputed, "imputed_variables"), "Heart_45, Cortisol_45")
 })
 
-test_that("display score results expose phenotype-first public labels", {
+test_that("display score results expose clamp-based public labels", {
   df <- as.data.frame(as.list(stats::setNames(rep(0, length(required_score_cols())), required_score_cols())),
                       check.names = FALSE)
   for (var in CLAMP_VARIABLES) {
@@ -174,8 +186,8 @@ test_that("display score results expose phenotype-first public labels", {
       "Score",
       "Cutoff",
       "Cutoff result",
-      "Response phenotype",
-      "Provisional clinical-awareness correspondence"
+      "Clamp-based awareness classification",
+      "Classification scope"
     )
   )
   expect_equal(display_scores[["Subject ID"]], "Example")
@@ -184,15 +196,15 @@ test_that("display score results expose phenotype-first public labels", {
   expect_equal(display_scores[["Cutoff"]], 25)
   expect_equal(
     display_scores[["Cutoff result"]],
-    "Meets cutoff: Higher-response phenotype"
+    "Meets cutoff: Clamp-based NAH"
   )
   expect_equal(
-    display_scores[["Response phenotype"]],
-    "Higher-response phenotype"
+    display_scores[["Clamp-based awareness classification"]],
+    "Clamp-based NAH"
   )
   expect_equal(
-    display_scores[["Provisional clinical-awareness correspondence"]],
-    "Provisional correspondence to NAH"
+    display_scores[["Classification scope"]],
+    "Study-derived from controlled hypoglycemic clamp data; not a clinical diagnosis."
   )
   expect_false("unadjusted_distance" %in% names(display_scores))
   expect_false("adjusted_distance" %in% names(display_scores))

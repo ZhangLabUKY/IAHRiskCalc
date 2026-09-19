@@ -2,7 +2,7 @@ status_label <- function(value) {
   if (is.na(value)) {
     return("Unable to calculate")
   }
-  if (isTRUE(value)) "Lower-response phenotype" else "Higher-response phenotype"
+  if (isTRUE(value)) "Clamp-based IAH" else "Clamp-based NAH"
 }
 
 manual_input_id <- function(var, level) {
@@ -190,43 +190,26 @@ summary_card <- function(title, value, meta = NULL, class = "") {
   )
 }
 
-phenotype_display_label <- function(score) {
-  label <- score$response_phenotype_label[[1]]
+clamp_based_awareness_label <- function(score) {
+  label <- score$clamp_based_awareness_classification[[1]]
   if (!is.null(label) && !is.na(label) && nzchar(label)) {
     return(as.character(label))
   }
-  response_phenotype_label(response_phenotype_code(
-    score$primary_impaired_awareness[[1]]
-  ))
+  clamp_based_awareness_classification(score$primary_impaired_awareness[[1]])
 }
 
-provisional_awareness_label <- function(score) {
-  phenotype <- score$response_phenotype[[1]]
-  if (!is.null(phenotype) && !is.na(phenotype)) {
-    return(ifelse(phenotype == "lower_response", "IAH", "NAH"))
-  }
-  if (isTRUE(score$primary_impaired_awareness[[1]])) "IAH" else "NAH"
-}
-
-response_pattern_class <- function(score) {
-  phenotype <- score$response_phenotype[[1]]
-  if (is.na(score$primary_score) || is.null(phenotype) || is.na(phenotype)) {
+clamp_based_risk_class <- function(score) {
+  if (is.na(score$primary_score) || is.na(score$primary_impaired_awareness[[1]])) {
     return("unknown")
   }
-  if (phenotype == "lower_response") {
-    return("lower-response")
-  }
-  if (phenotype == "higher_response") {
-    return("higher-response")
-  }
-  "unknown"
+  if (isTRUE(score$primary_impaired_awareness[[1]])) "high-risk" else "low-risk"
 }
 
-response_pattern_card <- function(score) {
-  gauge_class <- response_pattern_class(score)
+clamp_based_risk_card <- function(score) {
+  gauge_class <- clamp_based_risk_class(score)
   div(
-    class = "score-card response-pattern-card",
-    h4("Response Pattern"),
+    class = "score-card clamp-risk-card",
+    h4("Clamp-Based IAH Classification Score"),
     div(
       class = paste("response-gauge", gauge_class),
       div(
@@ -236,8 +219,8 @@ response_pattern_card <- function(score) {
       ),
       div(
         class = "response-gauge-labels",
-        tags$span("Lower response"),
-        tags$span("Higher response")
+        tags$span("Low"),
+        tags$span("High")
       )
     )
   )
@@ -336,15 +319,15 @@ score_summary_cards <- function(scores) {
     class = "score-grid",
     summary_card("Subjects scored", counts$subjects_scored),
     summary_card(
-      "Lower-response phenotype",
+      "Clamp-based IAH",
       counts$impaired_awareness,
-      "Provisional correspondence to IAH",
+      "Study-derived clamp classification",
       "risk-summary"
     ),
     summary_card(
-      "Higher-response phenotype",
+      "Clamp-based NAH",
       counts$normal_awareness,
-      "Provisional correspondence to NAH"
+      "Study-derived clamp classification"
     ),
     summary_card(
       "Adjusted method",
@@ -392,21 +375,18 @@ single_score_cards <- function(score) {
     ),
     div(
       class = "score-card wide",
-      h4("Response Phenotype"),
-      div(class = "classification", phenotype_display_label(score)),
+      h4("Clamp-Based Awareness Classification"),
+      div(class = "classification", clamp_based_awareness_label(score)),
       div(
         class = "score-meta",
         ifelse(
           is.na(score$primary_score),
           "Complete 45 mg/dL data are required.",
-          paste(
-            "Provisional clinical-awareness correspondence:",
-            provisional_awareness_label(score)
-          )
+          "Study-derived from controlled hypoglycemic clamp data; not a clinical diagnosis."
         )
       )
     ),
-    response_pattern_card(score)
+    clamp_based_risk_card(score)
   )
 }
 
@@ -439,11 +419,14 @@ iah_app_ui <- function() {
     )),
     bslib::page_navbar(
       title = tagList(
-        tags$span(class = "navbar-title-text", "Clamp Response Phenotype Calculator"),
+        tags$span(
+          class = "navbar-title-text",
+          "Clamp-Based IAH Classification Calculator"
+        ),
         tags$span(class = "navbar-version", app_version_label())
       ),
       fillable = FALSE,
-      window_title = "Clamp Response Phenotype Calculator",
+      window_title = "Clamp-Based IAH Classification Calculator",
       navbar_options = bslib::navbar_options(collapsible = TRUE),
       bslib::nav_panel(
       "Calculator",
@@ -486,7 +469,11 @@ iah_app_ui <- function() {
             manual_example_controls()
           ),
           uiOutput("missing_mode_ui"),
-          actionButton("calculate", "Calculate risk", class = "btn-primary")
+          actionButton(
+            "calculate",
+            "Calculate clamp-based classification",
+            class = "btn-primary"
+          )
         ),
         div(
           class = "workflow-main",
@@ -549,14 +536,14 @@ iah_app_ui <- function() {
         class = "methods",
         h3("Purpose"),
         p(
-          "This app supports research workflows for calculating study-derived clamp-response phenotypes from hyperinsulinemic clamp response data. Its lower- and higher-response phenotypes have provisional correspondence to clinical awareness status and are not standalone clinical diagnoses."
+          "This app supports research workflows for calculating study-derived clamp-based IAH and NAH classifications from hyperinsulinemic hypoglycemic clamp response data. These classifications are not standalone clinical diagnoses."
         ),
         h3("Calculator Workflow"),
         p(
           "Manual entry is the default workflow and scores one subject at a time. Uploaded CSV, XLS, or XLSX files can score multiple subjects in the same session."
         ),
         p(
-          "Single-subject and uploaded-subject results use the same patient-facing cards: Patient Value, Response Phenotype, and Response Pattern. Each phenotype includes a clearly marked provisional clinical-awareness correspondence. Uploaded results are grouped into pages of up to four subjects, and the scored CSV download is available from the Results header."
+          "Single-subject and uploaded-subject results use the same patient-facing cards: Patient Value, Clamp-Based Awareness Classification, and Clamp-Based IAH Classification Score. Each classification is derived from controlled hypoglycemic clamp data and is not a clinical diagnosis. Uploaded results are grouped into pages of up to four subjects, and the scored CSV download is available from the Results header."
         ),
         h3("Automated Preprocessing"),
         tags$ul(
@@ -612,8 +599,8 @@ iah_app_ui <- function() {
         tags$ul(
           tags$li("Adjusted 45-vs-90 cutoff: 25."),
           tags$li("Unadjusted 45 mg/dL cutoff: 66.5."),
-          tags$li("A primary score greater than or equal to its cutoff is reported as a higher-response phenotype, with provisional correspondence to NAH."),
-          tags$li("A primary score below its cutoff is reported as a lower-response phenotype, with provisional correspondence to IAH.")
+          tags$li("A primary score greater than or equal to its cutoff is reported as Clamp-based NAH and maps to a low Clamp-Based IAH Classification Score."),
+          tags$li("A primary score below its cutoff is reported as Clamp-based IAH and maps to a high Clamp-Based IAH Classification Score.")
         ),
         h3("Plots and Exports"),
         p(
@@ -626,7 +613,7 @@ iah_app_ui <- function() {
         ),
         h3("Disclaimer"),
         p(
-          "This tool supports research workflows using clamp-derived response data and study-specific cutoffs. The phenotype-to-awareness correspondence is provisional and the tool is not a standalone clinical diagnostic tool."
+          "This tool supports research workflows using clamp-derived response data and study-specific cutoffs. It reports a study-derived clamp-based IAH or NAH classification and is not a standalone clinical diagnostic tool."
         )
       )
     ),
@@ -1056,7 +1043,7 @@ iah_app_server <- function(input, output, session) {
     if (isTRUE(preflight$has_offset_warnings)) {
       return(div(
         class = "app-message warn slim",
-        "File parsed successfully. Review log2 transformation warnings before calculating risk."
+        "File parsed successfully. Review log2 transformation warnings before calculating classification."
       ))
     }
     if (isTRUE(preflight$has_missing_required)) {
@@ -1301,7 +1288,7 @@ iah_app_server <- function(input, output, session) {
         result$scores$participant_id,
         collapse = "_"
       ))
-      paste0("clamp_response_phenotype_results_", ids, ".csv")
+      paste0("clamp_based_iah_risk_prediction_results_", ids, ".csv")
     },
     content = function(file) {
       result <- current_result()
@@ -1324,7 +1311,7 @@ iah_app_server <- function(input, output, session) {
     if (is.null(profile_state())) {
       div(
         class = "app-message warn",
-        "Upload or manually enter data, then calculate risk in the Calculator tab to view plots. Response profiles appear when adjusted 45/90 data are available."
+        "Upload or manually enter data, then calculate clamp-based classification in the Calculator tab to view plots. Response profiles appear when adjusted 45/90 data are available."
       )
     }
   })

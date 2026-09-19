@@ -42,7 +42,7 @@ test_that("app UI exposes the calculator, plot, and methods workflows", {
 
   expect_match(html, "navbar-title-text", fixed = TRUE)
   expect_match(html, "navbar-brand", fixed = TRUE)
-  expect_match(html, "Clamp Response Phenotype Calculator", fixed = TRUE)
+  expect_match(html, "Clamp-Based IAH Classification Calculator", fixed = TRUE)
   expect_match(html, "Calculator", fixed = TRUE)
   expect_match(html, "Plots", fixed = TRUE)
   expect_match(html, "Methods", fixed = TRUE)
@@ -74,8 +74,13 @@ test_that("app UI exposes the calculator, plot, and methods workflows", {
   expect_match(html, "Mean imputation", fixed = TRUE)
   expect_match(html, "Manual entry is the default workflow", fixed = TRUE)
   expect_match(html, "up to four subjects", fixed = TRUE)
-  expect_match(html, "Patient Value, Response Phenotype, and Response Pattern", fixed = TRUE)
-  expect_match(html, "provisional clinical-awareness correspondence", fixed = TRUE)
+  expect_match(
+    html,
+    "Patient Value, Clamp-Based Awareness Classification, and Clamp-Based IAH Classification Score",
+    fixed = TRUE
+  )
+  expect_match(html, "not a clinical diagnosis", fixed = TRUE)
+  expect_match(html, "Calculate clamp-based classification", fixed = TRUE)
   expect_match(html, "including decimal values", fixed = TRUE)
   expect_match(html, "built-in, post-transform study-reference means", fixed = TRUE)
   expect_match(html, "uploaded data use the existing per-column offset rule", fixed = TRUE)
@@ -108,6 +113,10 @@ test_that("navbar and uploaded result CSS preserve contrast and horizontal cards
   expect_match(css, "width: 200px !important", fixed = TRUE)
   expect_match(css, "height: 44px", fixed = TRUE)
   expect_match(css, "white-space: normal", fixed = TRUE)
+  expect_match(css, ".response-gauge.low-risk", fixed = TRUE)
+  expect_match(css, ".response-gauge.high-risk", fixed = TRUE)
+  expect_match(css, "#2f9e44", fixed = TRUE)
+  expect_match(css, "#d64545", fixed = TRUE)
 })
 
 test_that("manual entry UI uses readable clamp labels", {
@@ -353,12 +362,14 @@ test_that("manual scoring stores profile state for plot workflows", {
   })
 })
 
-test_that("single-subject cards use phenotype wording and provisional correspondence", {
+test_that("single-subject cards use clamp-based classifications and score direction", {
   iah_score <- data.frame(
     primary_score = 16,
     primary_cutoff = 25,
     primary_impaired_awareness = TRUE,
-    primary_cutoff_result = "Below cutoff: Lower-response phenotype",
+    primary_cutoff_result = "Below cutoff: Clamp-based IAH",
+    clamp_based_awareness_classification = "Clamp-based IAH",
+    classification_scope = "Study-derived from controlled hypoglycemic clamp data; not a clinical diagnosis.",
     response_phenotype = "lower_response",
     response_phenotype_label = "Lower-response phenotype",
     provisional_awareness_correspondence = "Provisional correspondence to IAH",
@@ -368,7 +379,8 @@ test_that("single-subject cards use phenotype wording and provisional correspond
   nah_score <- iah_score
   nah_score$primary_score <- 30
   nah_score$primary_impaired_awareness <- FALSE
-  nah_score$primary_cutoff_result <- "Meets cutoff: Higher-response phenotype"
+  nah_score$primary_cutoff_result <- "Meets cutoff: Clamp-based NAH"
+  nah_score$clamp_based_awareness_classification <- "Clamp-based NAH"
   nah_score$response_phenotype <- "higher_response"
   nah_score$response_phenotype_label <- "Higher-response phenotype"
   nah_score$provisional_awareness_correspondence <- "Provisional correspondence to NAH"
@@ -378,6 +390,8 @@ test_that("single-subject cards use phenotype wording and provisional correspond
   unable_score$primary_cutoff <- NA_real_
   unable_score$primary_impaired_awareness <- NA
   unable_score$primary_cutoff_result <- "Unable to calculate"
+  unable_score$clamp_based_awareness_classification <- "Unable to calculate"
+  unable_score$classification_scope <- ""
   unable_score$response_phenotype <- NA_character_
   unable_score$response_phenotype_label <- "Unable to calculate"
   unable_score$provisional_awareness_correspondence <- ""
@@ -390,19 +404,19 @@ test_that("single-subject cards use phenotype wording and provisional correspond
     collapse = "\n"
   )
 
-  expect_match(iah_html, "Response Phenotype", fixed = TRUE)
-  expect_match(iah_html, "Lower-response phenotype", fixed = TRUE)
-  expect_match(nah_html, "Higher-response phenotype", fixed = TRUE)
+  expect_match(iah_html, "Clamp-Based Awareness Classification", fixed = TRUE)
+  expect_match(iah_html, "Clamp-based IAH", fixed = TRUE)
+  expect_match(nah_html, "Clamp-based NAH", fixed = TRUE)
   expect_match(
     iah_html,
-    "Provisional clinical-awareness correspondence: IAH",
+    "Study-derived from controlled hypoglycemic clamp data; not a clinical diagnosis.",
     fixed = TRUE
   )
-  expect_match(iah_html, "Response Pattern", fixed = TRUE)
-  expect_match(iah_html, "Lower response", fixed = TRUE)
-  expect_match(iah_html, "Higher response", fixed = TRUE)
-  expect_match(iah_html, "response-gauge lower-response", fixed = TRUE)
-  expect_match(nah_html, "response-gauge higher-response", fixed = TRUE)
+  expect_match(iah_html, "Clamp-Based IAH Classification Score", fixed = TRUE)
+  expect_match(iah_html, "Low", fixed = TRUE)
+  expect_match(iah_html, "High", fixed = TRUE)
+  expect_match(iah_html, "response-gauge high-risk", fixed = TRUE)
+  expect_match(nah_html, "response-gauge low-risk", fixed = TRUE)
   expect_match(unable_html, "response-gauge unknown", fixed = TRUE)
 })
 
@@ -420,12 +434,12 @@ test_that("uploaded score cards render four subjects per page", {
   expect_match(html, "Subject ID: S001", fixed = TRUE)
   expect_match(html, "Subject ID: S005", fixed = TRUE)
   expect_match(html, "Patient Value", fixed = TRUE)
-  expect_match(html, "Response Phenotype", fixed = TRUE)
-  expect_match(html, "Lower-response phenotype", fixed = TRUE)
-  expect_match(html, "Higher-response phenotype", fixed = TRUE)
-  expect_match(html, "Response Pattern", fixed = TRUE)
-  expect_match(html, "response-gauge lower-response", fixed = TRUE)
-  expect_match(html, "response-gauge higher-response", fixed = TRUE)
+  expect_match(html, "Clamp-Based Awareness Classification", fixed = TRUE)
+  expect_match(html, "Clamp-based IAH", fixed = TRUE)
+  expect_match(html, "Clamp-based NAH", fixed = TRUE)
+  expect_match(html, "Clamp-Based IAH Classification Score", fixed = TRUE)
+  expect_match(html, "response-gauge high-risk", fixed = TRUE)
+  expect_match(html, "response-gauge low-risk", fixed = TRUE)
 })
 
 test_that("upload results show card tabs and header download without rendered table", {
@@ -593,7 +607,7 @@ test_that("missing values use no imputation by default and mean imputation when 
   })
 })
 
-test_that("multi-subject summary cards show phenotype counts", {
+test_that("multi-subject summary cards show clamp-based classification counts", {
   scores <- data.frame(
     primary_impaired_awareness = c(TRUE, TRUE, FALSE, FALSE, NA),
     score_method = c(
@@ -608,10 +622,9 @@ test_that("multi-subject summary cards show phenotype counts", {
 
   html <- paste(as.character(score_summary_cards(scores)), collapse = "\n")
 
-  expect_match(html, "Lower-response phenotype", fixed = TRUE)
-  expect_match(html, "Higher-response phenotype", fixed = TRUE)
-  expect_match(html, "Provisional correspondence to IAH", fixed = TRUE)
-  expect_match(html, "Provisional correspondence to NAH", fixed = TRUE)
+  expect_match(html, "Clamp-based IAH", fixed = TRUE)
+  expect_match(html, "Clamp-based NAH", fixed = TRUE)
+  expect_match(html, "Study-derived clamp classification", fixed = TRUE)
   expect_match(html, "Adjusted method", fixed = TRUE)
   expect_match(html, "Unadjusted method", fixed = TRUE)
   expect_match(html, "score-value\">2<", fixed = TRUE)

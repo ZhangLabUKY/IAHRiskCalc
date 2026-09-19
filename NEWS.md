@@ -1,7 +1,8 @@
 # IAHRiskCalc 0.0.2
 
-- Reframed the public Shiny application as the Clamp Response Phenotype Calculator, reporting study-derived lower- and higher-response phenotypes rather than clinical awareness classifications.
-- Retained `IAH` and `NAH` only as clearly labeled provisional clinical-awareness correspondences; scoring equations, cutoffs, and internal classification codes are unchanged.
+- Renamed the public Shiny application the Clamp-Based IAH Classification Calculator and retained the three-card classification result layout.
+- Public results now report `Clamp-based IAH` or `Clamp-based NAH` classifications and a low/high Clamp-Based IAH Classification Score gauge. These classifications reflect controlled hypoglycemic clamp responses and are not standalone clinical diagnoses.
+- Retained the scoring equations, cutoffs, and internal `IAH`/`NAH` classification codes unchanged.
 - Clarified that manual symptom entries are numeric, may include decimal values, and are scored without rounding; raw physiological entries continue to be log2-transformed before scoring.
 - Added three static manual-entry example subjects. Complete examples proceed directly to calculation, while the incomplete example demonstrates the No Imputation and Mean imputation workflows with six missing 45 mg/dL fields.
 - Added built-in post-transform study-reference means for manual mean imputation, without runtime reads from `Reference-Data/`.

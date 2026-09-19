@@ -10,10 +10,10 @@
 coverage](https://codecov.io/gh/ZhangLabUKY/IAHRiskCalc/graph/badge.svg)](https://app.codecov.io/gh/ZhangLabUKY/IAHRiskCalc)
 <!-- badges: end -->
 
-The goal of IAHRiskCalc is to calculate study-derived lower- and
-higher-response clamp phenotypes from symptom and physiological response
-values collected at 45 and 90 mg/dL. Their correspondence to clinical
-awareness status is provisional.
+The goal of IAHRiskCalc is to calculate study-derived clamp-based IAH and NAH
+classifications from symptom and physiological response values collected
+at 45 and 90 mg/dL. The classifications reflect controlled hypoglycemic clamp
+responses and are not standalone clinical diagnoses.
 
 ## Installation
 
@@ -36,12 +36,11 @@ pak::pak("ZhangLabUKY/IAHRiskCalc")
   positive raw value in the current scoring dataset.
 - Calculates an unadjusted 45 mg/dL score and an adjusted 45-vs-90 score
   using all 20 variables.
-- Reports scores greater than or equal to their thresholds as a
-  higher-response phenotype, with provisional correspondence to `NAH`,
-  and scores below threshold as a lower-response phenotype, with
-  provisional correspondence to `IAH`.
-- Keeps the study’s internal `IAH`/`NAH` coding while presenting
-  phenotype-first public results and CSV exports.
+- Reports scores greater than or equal to their thresholds as `Clamp-based NAH`
+  with a low Clamp-Based IAH Classification Score, and scores below threshold as `Clamp-based IAH`
+  with a high Clamp-Based IAH Classification Score.
+- Keeps the study’s internal `IAH`/`NAH` coding while presenting public
+  clamp-based classification results.
 - Accepts numeric symptom values, including decimals, without rounding.
 - Provides interactive Plotly plots and downloadable CSV/figure exports.
 

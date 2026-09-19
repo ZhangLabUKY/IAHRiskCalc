@@ -3,9 +3,9 @@ template:
   bootstrap: 5
   light-switch: yes
 home:
-  title: Clamp Response Phenotype Calculator
-  tagline: An R Shiny application for calculating study-derived lower- and
-    higher-response clamp phenotypes with provisional clinical-awareness correspondence.
+  title: Clamp-Based IAH Classification Calculator
+  tagline: An R Shiny application for calculating study-derived clamp-based IAH
+    and NAH classifications from controlled hypoglycemic clamp responses.
 navbar:
   title: IAHRiskCalc
   left:
