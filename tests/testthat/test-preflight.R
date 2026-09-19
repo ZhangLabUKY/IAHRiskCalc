@@ -71,3 +71,56 @@ test_that("missing-value display uses friendly labels and whole-number counts", 
   expect_equal(display[["Missing value count"]], "2")
   expect_equal(display[["Missing variables"]], "Heart_45, Shaky_90")
 })
+
+test_that("symptom ratings require whole numbers from zero to six", {
+  valid <- score_fixture(value_45 = 4, value_90 = 1)
+  valid$Heart_90 <- 0
+  valid$Dizzy_45 <- 6
+
+  valid_check <- validate_scoring_input(valid)
+  expect_true(valid_check$ok)
+  expect_true(valid_check$symptom_check$ok)
+
+  physiological_decimal <- valid
+  physiological_decimal$Cortisol_45 <- 1.25
+  expect_true(validate_scoring_input(physiological_decimal)$ok)
+
+  invalid_cases <- list(
+    `Heart_90` = 0.2,
+    `Shaky_45` = 2.5,
+    `Sweaty_90` = -1,
+    `Hungry_45` = 7
+  )
+
+  for (field in names(invalid_cases)) {
+    invalid <- valid
+    invalid[[field]] <- invalid_cases[[field]]
+    invalid_check <- validate_scoring_input(invalid)
+
+    expect_false(invalid_check$ok)
+    expect_false(invalid_check$symptom_check$ok)
+    expect_equal(invalid_check$symptom_check$invalid_values$symptom_field, field)
+    expect_match(invalid_check$message, "whole numbers from 0 to 6", fixed = TRUE)
+    expect_match(invalid_check$message, field, fixed = TRUE)
+  }
+})
+
+test_that("upload preflight reports invalid symptom ratings", {
+  df <- score_fixture(value_45 = 4, value_90 = 1)
+  df <- data.frame("Subject ID" = "S001", df, check.names = FALSE)
+  df$Heart_45 <- 0.2
+  path <- write_wide_csv_fixture(df)
+
+  preflight <- preflight_upload(path, "invalid_symptom.csv")
+  display <- format_invalid_symptom_ratings_for_display(
+    preflight$symptom_check$invalid_values
+  )
+
+  expect_false(preflight$ok)
+  expect_true(preflight$has_invalid_symptom_ratings)
+  expect_equal(names(display), c("Subject ID", "Symptom field", "Entered value", "Issue"))
+  expect_equal(display[["Subject ID"]], "S001")
+  expect_equal(display[["Symptom field"]], "Heart_45")
+  expect_equal(display[["Entered value"]], "0.2")
+  expect_equal(display[["Issue"]], "Not a whole number")
+})

@@ -1,4 +1,4 @@
-manual_server_inputs <- function(value_45 = 8, value_90 = 1, subject_id = "Manual subject") {
+manual_server_inputs <- function(value_45 = 6, value_90 = 1, subject_id = "Manual subject") {
   values <- list(
     input_mode = "manual",
     manual_participant_id = subject_id
@@ -81,7 +81,8 @@ test_that("app UI exposes the calculator, plot, and methods workflows", {
   )
   expect_match(html, "not a clinical diagnosis", fixed = TRUE)
   expect_match(html, "Calculate clamp-based classification", fixed = TRUE)
-  expect_match(html, "including decimal values", fixed = TRUE)
+  expect_match(html, "whole numbers from 0 to 6", fixed = TRUE)
+  expect_match(html, "may include decimals", fixed = TRUE)
   expect_match(html, "built-in, post-transform study-reference means", fixed = TRUE)
   expect_match(html, "uploaded data use the existing per-column offset rule", fixed = TRUE)
   expect_match(html, "Manual entry uses a paired same-analyte rule", fixed = TRUE)
@@ -127,8 +128,11 @@ test_that("manual entry UI uses readable clamp labels", {
   expect_match(html, "Tired/Drowsy", fixed = TRUE)
   expect_match(html, "Free fatty acids", fixed = TRUE)
   expect_match(html, "Pancreatic Polypeptide", fixed = TRUE)
+  expect_match(html, "min=\"0\"", fixed = TRUE)
+  expect_match(html, "max=\"6\"", fixed = TRUE)
+  expect_match(html, "step=\"1\"", fixed = TRUE)
   expect_match(html, "step=\"0.1\"", fixed = TRUE)
-  expect_match(html, "Symptom values are scored without rounding", fixed = TRUE)
+  expect_match(html, "whole numbers from 0 to 6", fixed = TRUE)
 })
 
 test_that("manual examples use the intended complete and imputation paths", {
@@ -152,6 +156,8 @@ test_that("manual examples use the intended complete and imputation paths", {
     expect_equal(names(example$values), required_score_cols())
     expect_equal(names(example$values)[is.na(unlist(example$values))], missing_fields[[case]])
     expect_match(example$participant_id, "^Example subject [1-3]$")
+    symptom_values <- unlist(example$values[symptom_rating_cols()])
+    expect_true(all(is.na(symptom_values) | symptom_values %in% 0:6))
 
     df <- as.data.frame(example$values, check.names = FALSE)
     rownames(df) <- example$participant_id
@@ -174,6 +180,11 @@ test_that("manual examples use the intended complete and imputation paths", {
       )
       scores <- apply_imputation_metadata(calc_clamp_scores(imputed), imputed)
       expect_true(scores$imputation_used)
+      expect_equal(
+        imputed$Heart_45,
+        manual_imputation_reference()$Heart_45
+      )
+      expect_false(imputed$Heart_45 %% 1 == 0)
       expect_equal(
         scores$imputed_variables,
         paste(missing_fields[[case]], collapse = ", ")
@@ -282,14 +293,32 @@ test_that("manual examples show missing-data controls only when values are missi
   })
 })
 
-test_that("manual inputs preserve decimal symptom values and use static reference code", {
-  decimal_inputs <- manual_server_inputs()
-  decimal_inputs[[manual_input_id("Heart", 45)]] <- 1.5
-
+test_that("manual scoring validates symptoms and accepts decimal physiology", {
   shiny::testServer(iah_app_server, {
-    set_many_inputs(session, decimal_inputs)
-    expect_equal(manual_df()$Heart_45, 1.5)
+    physiological_decimal_inputs <- manual_server_inputs()
+    physiological_decimal_inputs[[manual_input_id("Cortisol", 45)]] <- 1.25
+    set_many_inputs(session, physiological_decimal_inputs)
+    session$setInputs(calculate = 1)
+
+    valid_result <- current_result()
+    expect_true(valid_result$ok)
+    expect_equal(valid_result$df$Cortisol_45, log2(1.25))
   })
+
+  for (invalid_value in c(0.2, 2.5, -1, 7)) {
+    shiny::testServer(iah_app_server, {
+      invalid_inputs <- manual_server_inputs()
+      invalid_inputs[[manual_input_id("Heart", 45)]] <- invalid_value
+      set_many_inputs(session, invalid_inputs)
+      session$setInputs(calculate = 1)
+
+      result <- current_result()
+      expect_false(result$ok)
+      expect_false(result$needs_offset)
+      expect_match(result$message, "whole numbers from 0 to 6", fixed = TRUE)
+      expect_match(result$message, "Heart_45", fixed = TRUE)
+    })
+  }
 
   skip_if_no_source_checkout()
   imputation_source <- paste(
@@ -298,6 +327,45 @@ test_that("manual inputs preserve decimal symptom values and use static referenc
   )
   expect_match(imputation_source, "manual_imputation_reference", fixed = TRUE)
   expect_no_match(imputation_source, "Reference-Data", fixed = TRUE)
+})
+
+test_that("uploaded invalid symptom ratings appear in preflight and block scoring", {
+  df <- score_fixture(value_45 = 4, value_90 = 1)
+  df <- data.frame("Subject ID" = "Invalid upload", df, check.names = FALSE)
+  df$Heart_90 <- 0.2
+  df$Shaky_45 <- -1
+  df$Sweaty_90 <- 7
+  path <- write_wide_csv_fixture(df)
+
+  shiny::testServer(iah_app_server, {
+    session$setInputs(
+      input_mode = "upload",
+      calculator_file = file_input_value(path, "invalid_symptoms.csv")
+    )
+    session$flushReact()
+
+    preflight <- current_preflight()
+    expect_false(preflight$ok)
+    expect_true(preflight$has_invalid_symptom_ratings)
+    expect_equal(nrow(preflight$symptom_check$invalid_values), 3)
+    expect_match(
+      paste(as.character(output$preflight_messages), collapse = "\n"),
+      "whole numbers from 0 to 6",
+      fixed = TRUE
+    )
+    expect_match(
+      paste(as.character(output$preflight_panel), collapse = "\n"),
+      "Invalid Symptom Ratings",
+      fixed = TRUE
+    )
+
+    session$setInputs(calculate = 1)
+    result <- current_result()
+    expect_false(result$ok)
+    expect_match(result$message, "Heart_90", fixed = TRUE)
+    expect_match(result$message, "Shaky_45", fixed = TRUE)
+    expect_match(result$message, "Sweaty_90", fixed = TRUE)
+  })
 })
 
 test_that("manual mode initializes safely before fields are populated", {
@@ -334,13 +402,13 @@ test_that("manual edit restores session values and recalculates from edits", {
     expect_match(restored, 'value="2"', fixed = TRUE)
 
     edit_values <- list()
-    edit_values[[manual_input_id("Heart", 45)]] <- 12
+    edit_values[[manual_input_id("Heart", 45)]] <- 6
     set_many_inputs(session, edit_values)
     session$setInputs(calculate = 2)
 
     second_result <- current_result()
     expect_true(second_result$ok)
-    expect_equal(manual_entry_cache()$values$Heart_45, 12)
+    expect_equal(manual_entry_cache()$values$Heart_45, 6)
     expect_gt(
       second_result$scores$primary_score[[1]],
       first_result$scores$primary_score[[1]]
@@ -429,7 +497,7 @@ test_that("single-subject cards use expanded clamp-based classifications and ind
 })
 
 test_that("uploaded score cards render four subjects per page", {
-  df <- score_fixture(value_45 = 8, value_90 = 1)
+  df <- score_fixture(value_45 = 6, value_90 = 1)
   df <- df[rep(1, 5), , drop = FALSE]
   df[1, required_45_cols()] <- 1
   df[1, required_90_cols()] <- 1
@@ -451,7 +519,7 @@ test_that("uploaded score cards render four subjects per page", {
 })
 
 test_that("upload results show card tabs and header download without rendered table", {
-  df <- score_fixture(value_45 = 8, value_90 = 1)
+  df <- score_fixture(value_45 = 6, value_90 = 1)
   df <- df[rep(1, 5), , drop = FALSE]
   path <- write_wide_csv_fixture(data.frame(
     "Subject ID" = paste0("S00", seq_len(5)),
@@ -511,7 +579,7 @@ test_that("one-subject uploads still show upload cards and CSV download", {
 })
 
 test_that("uploaded scoring still selects adjusted or unadjusted per subject", {
-  df <- score_fixture(value_45 = 8, value_90 = 1)
+  df <- score_fixture(value_45 = 6, value_90 = 1)
   df <- df[rep(1, 2), , drop = FALSE]
   df[2, required_90_cols()] <- NA_real_
   path <- write_wide_csv_fixture(data.frame(
@@ -558,7 +626,7 @@ test_that("upload scoring stores uploaded data for plot workflows", {
 })
 
 test_that("upload offset confirmation blocks then scores with a positive anchor", {
-  df <- score_fixture(value_45 = 8, value_90 = 1)
+  df <- score_fixture(value_45 = 6, value_90 = 1)
   df <- data.frame("Subject ID" = c("S001", "S002"), df[rep(1, 2), ], check.names = FALSE)
   df$Cortisol_45[[1]] <- 0
   df$Cortisol_45[[2]] <- 10
@@ -585,10 +653,10 @@ test_that("upload offset confirmation blocks then scores with a positive anchor"
 })
 
 test_that("missing values use no imputation by default and mean imputation when selected", {
-  df <- score_fixture(value_45 = 8, value_90 = 1)
+  df <- score_fixture(value_45 = 6, value_90 = 1)
   df <- data.frame("Subject ID" = c("S001", "S002"), df[rep(1, 2), ], check.names = FALSE)
   df$Heart_45[[1]] <- NA_real_
-  df$Heart_45[[2]] <- 8
+  df$Heart_45[[2]] <- 6
   path <- write_wide_csv_fixture(df)
 
   shiny::testServer(iah_app_server, {

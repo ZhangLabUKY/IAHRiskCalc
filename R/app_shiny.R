@@ -26,6 +26,7 @@ manual_entry_group_ui <- function(title, vars, values = NULL) {
     div(
       class = "entry-grid compact",
       lapply(vars, function(var) {
+        is_symptom <- var %in% SYMPTOM_VARIABLES
         div(
           class = "entry-row",
           tags$strong(class = "entry-name", clamp_variable_label(var)),
@@ -35,13 +36,17 @@ manual_entry_group_ui <- function(title, vars, values = NULL) {
               manual_input_id(var, 90),
               "90 mg/dL",
               value = manual_entry_value(values, var, 90),
-              step = 0.1
+              min = if (is_symptom) 0 else NA,
+              max = if (is_symptom) 6 else NA,
+              step = if (is_symptom) 1 else 0.1
             ),
             numericInput(
               manual_input_id(var, 45),
               "45 mg/dL",
               value = manual_entry_value(values, var, 45),
-              step = 0.1
+              min = if (is_symptom) 0 else NA,
+              max = if (is_symptom) 6 else NA,
+              step = if (is_symptom) 1 else 0.1
             )
           )
         )
@@ -54,7 +59,7 @@ manual_entry_ui <- function(values = NULL) {
   tagList(
     div(
       class = "app-message warn",
-      "Enter numeric symptom scores and raw physiological values below. Symptom values are scored without rounding; physiological fields are log2-transformed before scoring."
+      "Enter symptom ratings as whole numbers from 0 to 6. Decimal, negative, and above-range symptom values are rejected without rounding. Enter raw physiological values as numeric values; physiological fields are log2-transformed before scoring."
     ),
     manual_entry_group_ui("Symptoms", SYMPTOM_VARIABLES, values),
     manual_entry_group_ui(
@@ -98,17 +103,17 @@ manual_example_values <- function(
     example_subject_2 = list(
       participant_id = "Example subject 2",
       values = c(
-        Heart_90 = 0.2, Heart_45 = NA_real_,
-        Shaky_90 = 0.2, Shaky_45 = 3.9,
-        Sweaty_90 = 0.2, Sweaty_45 = 3.9,
-        Hungry_90 = 2.2, Hungry_45 = 4.9,
-        Tingling_90 = 0.2, Tingling_45 = 1.9,
-        Confused_90 = 0.2, Confused_45 = 1.9,
-        Tired_90 = 0.2, Tired_45 = NA_real_,
-        Weak_90 = 0.2, Weak_45 = 1.9,
-        Warm_90 = 2.2, Warm_45 = 1.9,
-        Faint_90 = 0.2, Faint_45 = NA_real_,
-        Dizzy_90 = 0.2, Dizzy_45 = NA_real_,
+        Heart_90 = 0, Heart_45 = NA_real_,
+        Shaky_90 = 0, Shaky_45 = 4,
+        Sweaty_90 = 0, Sweaty_45 = 4,
+        Hungry_90 = 2, Hungry_45 = 5,
+        Tingling_90 = 0, Tingling_45 = 2,
+        Confused_90 = 0, Confused_45 = 2,
+        Tired_90 = 0, Tired_45 = NA_real_,
+        Weak_90 = 0, Weak_45 = 2,
+        Warm_90 = 2, Warm_45 = 2,
+        Faint_90 = 0, Faint_45 = NA_real_,
+        Dizzy_90 = 0, Dizzy_45 = NA_real_,
         Cortisol_90 = 9.13, Cortisol_45 = NA_real_,
         Glucagon_90 = 35.57, Glucagon_45 = 22.88,
         Dopamine_90 = 114.57, Dopamine_45 = 135.2,
@@ -123,17 +128,17 @@ manual_example_values <- function(
     example_subject_3 = list(
       participant_id = "Example subject 3",
       values = c(
-        Heart_90 = 0.2, Heart_45 = 0.1,
-        Shaky_90 = 0.2, Shaky_45 = 0.1,
-        Sweaty_90 = 0.2, Sweaty_45 = 0.1,
-        Hungry_90 = 0.2, Hungry_45 = 5.1,
-        Tingling_90 = 0.2, Tingling_45 = 0.1,
-        Confused_90 = 0.2, Confused_45 = 0.1,
-        Tired_90 = 0.2, Tired_45 = 0.1,
-        Weak_90 = 0.2, Weak_45 = 0.1,
-        Warm_90 = 0.2, Warm_45 = 0.1,
-        Faint_90 = 0.2, Faint_45 = 0.1,
-        Dizzy_90 = 0.2, Dizzy_45 = 0.1,
+        Heart_90 = 0, Heart_45 = 0,
+        Shaky_90 = 0, Shaky_45 = 0,
+        Sweaty_90 = 0, Sweaty_45 = 0,
+        Hungry_90 = 0, Hungry_45 = 5,
+        Tingling_90 = 0, Tingling_45 = 0,
+        Confused_90 = 0, Confused_45 = 0,
+        Tired_90 = 0, Tired_45 = 0,
+        Weak_90 = 0, Weak_45 = 0,
+        Warm_90 = 0, Warm_45 = 0,
+        Faint_90 = 0, Faint_45 = 0,
+        Dizzy_90 = 0, Dizzy_45 = 0,
         Cortisol_90 = 12.58, Cortisol_45 = 8.14,
         Glucagon_90 = 28.8, Glucagon_45 = 30.9,
         Dopamine_90 = 124.8, Dopamine_45 = 133.9,
@@ -558,7 +563,7 @@ iah_app_ui <- function() {
             "The Subject ID selector controls which uploaded column is used for subject labels in warnings, results, and plots."
           ),
           tags$li(
-            "Symptom values are numeric, including decimal values, and are used without rounding. Physiological variables are treated as raw values and log2-transformed before scoring and plotting."
+            "Symptom ratings at 90 and 45 mg/dL must be whole numbers from 0 to 6; decimal, negative, and above-range values are rejected without rounding. Physiological variables are treated as raw numeric values, may include decimals, and are log2-transformed before scoring and plotting."
           )
         ),
         h3("Log2 Offset Handling"),
@@ -582,7 +587,7 @@ iah_app_ui <- function() {
           ),
           tags$li(
             tags$strong("Mean imputation: "),
-            "manual entry uses built-in, post-transform study-reference means; uploads use column means from the current uploaded dataset after physiological preprocessing."
+            "manual entry uses built-in, post-transform study-reference means; uploads use column means from the current uploaded dataset after physiological preprocessing. Fractional values created by mean imputation are retained."
           )
         ),
         h3("Response Scores"),
@@ -820,6 +825,21 @@ iah_app_server <- function(input, output, session) {
 
   score_dataset <- function(df, reference_df, audit = NULL, source = "upload") {
     offset_method <- if (identical(source, "manual")) "paired" else "column"
+    validation <- validate_scoring_input(df)
+
+    if (!validation$ok) {
+      return(list(
+        ok = FALSE,
+        needs_offset = FALSE,
+        validation = validation,
+        df = df,
+        reference_df = reference_df,
+        audit = audit,
+        source = source,
+        message = validation$message
+      ))
+    }
+
     transform_result <- transform_physiological_responses(
       df,
       allow_offset = offset_confirmed(),
@@ -837,23 +857,6 @@ iah_app_server <- function(input, output, session) {
         source = source,
         message = transform_result$message %||%
           transform_result$transform_warnings
-      ))
-    }
-
-    validation <- validate_scoring_input(transform_result$data)
-    if (!validation$column_check$ok || !validation$numeric_check$ok) {
-      return(list(
-        ok = FALSE,
-        needs_offset = FALSE,
-        validation = validation,
-        transform = transform_result,
-        audit = audit,
-        source = source,
-        message = paste(
-          validation$column_check$message,
-          validation$numeric_check$message,
-          sep = " "
-        )
       ))
     }
 
@@ -1044,6 +1047,12 @@ iah_app_server <- function(input, output, session) {
     if (is.null(preflight)) {
       return(NULL)
     }
+    if (isTRUE(preflight$has_invalid_symptom_ratings)) {
+      return(div(
+        class = "app-message error slim",
+        "Invalid symptom ratings detected. Symptom ratings must be whole numbers from 0 to 6."
+      ))
+    }
     if (isTRUE(preflight$has_offset_warnings)) {
       return(div(
         class = "app-message warn slim",
@@ -1076,10 +1085,11 @@ iah_app_server <- function(input, output, session) {
     has_parser_warnings <- !is.null(preflight$audit) &&
       length(preflight$audit$parser_warnings) > 0 &&
       any(nzchar(preflight$audit$parser_warnings))
+    has_invalid_symptoms <- isTRUE(preflight$has_invalid_symptom_ratings)
     has_missing <- isTRUE(preflight$has_missing_required)
     has_offsets <- isTRUE(preflight$has_offset_warnings)
 
-    if (!has_parser_warnings && !has_missing && !has_offsets) {
+    if (!has_parser_warnings && !has_invalid_symptoms && !has_missing && !has_offsets) {
       return(NULL)
     }
 
@@ -1091,6 +1101,13 @@ iah_app_server <- function(input, output, session) {
         tagList(
           h4("Upload Audit"),
           tableOutput("preflight_upload_audit_table")
+        )
+      },
+      if (has_invalid_symptoms) {
+        tagList(
+          h4("Invalid Symptom Ratings"),
+          p("Symptom ratings must be whole numbers from 0 to 6."),
+          tableOutput("preflight_invalid_symptom_table")
         )
       },
       if (has_missing) {
@@ -1142,6 +1159,18 @@ iah_app_server <- function(input, output, session) {
         drop = FALSE
       ]
       format_missing_values_for_display(missing_rows)
+    },
+    striped = TRUE,
+    bordered = TRUE
+  )
+
+  output$preflight_invalid_symptom_table <- renderTable(
+    {
+      preflight <- current_preflight()
+      req(preflight)
+      format_invalid_symptom_ratings_for_display(
+        preflight$symptom_check$invalid_values
+      )
     },
     striped = TRUE,
     bordered = TRUE

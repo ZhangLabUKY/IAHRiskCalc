@@ -3,7 +3,7 @@
 - Renamed the public Shiny application the Clamp-Based IAH Classification Calculator and retained the three-card classification result layout.
 - Public results now report `Clamp-based IAH` or `Clamp-based NAH` classifications and a Clamp-Based IAH Classification Indicator with NAH/IAH endpoints. These classifications reflect controlled hypoglycemic clamp responses and are not standalone clinical diagnoses.
 - Retained the scoring equations, cutoffs, and internal `IAH`/`NAH` classification codes unchanged.
-- Clarified that manual symptom entries are numeric, may include decimal values, and are scored without rounding; raw physiological entries continue to be log2-transformed before scoring.
+- Updated symptom validation so manually entered and uploaded 90/45 mg/dL symptom ratings must be whole numbers from 0 to 6; decimal, negative, and above-range values are rejected without rounding. Decimal physiological entries remain supported, and fractional values created by mean imputation are retained.
 - Added three static manual-entry example subjects. Complete examples proceed directly to calculation, while the incomplete example demonstrates the No Imputation and Mean imputation workflows with six missing 45 mg/dL fields.
 - Added built-in post-transform study-reference means for manual mean imputation, without runtime reads from `Reference-Data/`.
 

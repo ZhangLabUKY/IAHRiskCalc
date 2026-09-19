@@ -1,18 +1,21 @@
 preflight_normalized <- function(normalized) {
   missing <- missing_required_values(normalized$data)
+  symptom_check <- validate_symptom_ratings(normalized$data)
   offset_fields <- physiological_offset_fields(normalized$data)
 
   transform_result <- NULL
-  if (nrow(offset_fields) == 0) {
+  if (symptom_check$ok && nrow(offset_fields) == 0) {
     transform_result <- transform_physiological_responses(normalized$data, allow_offset = FALSE)
   }
 
   list(
-    ok = TRUE,
+    ok = symptom_check$ok,
     data = normalized$data,
     audit = normalized$audit,
     missing_values = missing,
     has_missing_required = any(missing$missing_value_count > 0),
+    symptom_check = symptom_check,
+    has_invalid_symptom_ratings = !symptom_check$ok,
     offset_fields = offset_fields,
     has_offset_warnings = nrow(offset_fields) > 0,
     transform_result = transform_result
@@ -38,10 +41,11 @@ apply_subject_id_selection_to_preflight <- function(preflight, selected_key = NU
 preflight_manual <- function(df, offset_method = c("column", "paired")) {
   offset_method <- match.arg(offset_method)
   missing <- missing_required_values(df)
+  symptom_check <- validate_symptom_ratings(df)
   offset_fields <- physiological_offset_fields(df, offset_method = offset_method)
   transform_result <- NULL
 
-  if (nrow(offset_fields) == 0) {
+  if (symptom_check$ok && nrow(offset_fields) == 0) {
     transform_result <- transform_physiological_responses(
       df,
       allow_offset = FALSE,
@@ -50,11 +54,13 @@ preflight_manual <- function(df, offset_method = c("column", "paired")) {
   }
 
   list(
-    ok = TRUE,
+    ok = symptom_check$ok,
     data = df,
     audit = NULL,
     missing_values = missing,
     has_missing_required = any(missing$missing_value_count > 0),
+    symptom_check = symptom_check,
+    has_invalid_symptom_ratings = !symptom_check$ok,
     offset_fields = offset_fields,
     has_offset_warnings = nrow(offset_fields) > 0,
     transform_result = transform_result
@@ -69,6 +75,7 @@ preflight_status_frame <- function(preflight) {
   data.frame(
     rows = nrow(preflight$data),
     missing_rows = sum(preflight$missing_values$missing_value_count > 0),
+    invalid_symptom_rating_count = nrow(preflight$symptom_check$invalid_values),
     offset_warning_count = nrow(preflight$offset_fields),
     parser_warnings = if (is.null(preflight$audit)) {
       ""

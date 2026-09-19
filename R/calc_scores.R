@@ -48,6 +48,13 @@ clamp_cols <- function(vars = CLAMP_VARIABLES, levels = CLAMP_GLUCOSE_LEVELS) {
   as.vector(outer(vars, levels, paste, sep = "_"))
 }
 
+symptom_rating_cols <- function(
+  vars = SYMPTOM_VARIABLES,
+  levels = c(90, 45)
+) {
+  as.vector(outer(vars, levels, paste, sep = "_"))
+}
+
 required_score_cols <- function(vars = CLAMP_VARIABLES) {
   c(paste0(vars, "_45"), paste0(vars, "_90"))
 }
