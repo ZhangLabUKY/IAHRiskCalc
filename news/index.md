@@ -6,9 +6,10 @@
   Classification Calculator and retained the three-card classification
   result layout.
 - Public results now report `Clamp-based IAH` or `Clamp-based NAH`
-  classifications and a low/high Clamp-Based IAH Classification Score
-  gauge. These classifications reflect controlled hypoglycemic clamp
-  responses and are not standalone clinical diagnoses.
+  classifications and a Clamp-Based IAH Classification Indicator with
+  NAH/IAH endpoints. These classifications reflect controlled
+  hypoglycemic clamp responses and are not standalone clinical
+  diagnoses.
 - Retained the scoring equations, cutoffs, and internal `IAH`/`NAH`
   classification codes unchanged.
 - Clarified that manual symptom entries are numeric, may include decimal

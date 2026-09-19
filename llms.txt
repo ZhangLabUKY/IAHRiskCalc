@@ -28,9 +28,9 @@ pak::pak("ZhangLabUKY/IAHRiskCalc")
 - Calculates an unadjusted 45 mg/dL score and an adjusted 45-vs-90 score
   using all 20 variables.
 - Reports scores greater than or equal to their thresholds as
-  `Clamp-based NAH` with a low Clamp-Based IAH Classification Score, and
-  scores below threshold as `Clamp-based IAH` with a high Clamp-Based
-  IAH Classification Score.
+  `Clamp-based NAH` on the NAH side of the Clamp-Based IAH
+  Classification Indicator, and scores below threshold as
+  `Clamp-based IAH` on the IAH side of the indicator.
 - Keeps the study’s internal `IAH`/`NAH` coding while presenting public
   clamp-based classification results.
 - Accepts numeric symptom values, including decimals, without rounding.
