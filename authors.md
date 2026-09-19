@@ -13,12 +13,12 @@
 Source:
 [`DESCRIPTION`](https://github.com/ZhangLabUKY/IAHRiskCalc/blob/master/DESCRIPTION)
 
-Saraswat S, Zhang X (2026). *IAHRiskCalc: Clamp Response Phenotype
+Saraswat S, Zhang X (2026). *IAHRiskCalc: Clamp-Based IAH Classification
 Calculator*. R package version 0.0.2,
 <https://zhanglabuky.github.io/IAHRiskCalc/>.
 
     @Manual{,
-      title = {IAHRiskCalc: Clamp Response Phenotype Calculator},
+      title = {IAHRiskCalc: Clamp-Based IAH Classification Calculator},
       author = {Shubh Saraswat and Xiaohua Douglas Zhang},
       year = {2026},
       note = {R package version 0.0.2},

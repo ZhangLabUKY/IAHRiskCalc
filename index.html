@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Clamp Response Phenotype Calculator • IAHRiskCalc</title>
+<title>Clamp-Based IAH Classification Calculator • IAHRiskCalc</title>
 <script src="lightswitch.js"></script><script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Clamp Response Phenotype Calculator">
-<meta name="description" content="Shiny application for calculating study-derived clamp-response phenotypes from uploaded or manually entered physiological and symptom response data, with provisional correspondence to clinical awareness status.">
-<meta property="og:description" content="Shiny application for calculating study-derived clamp-response phenotypes from uploaded or manually entered physiological and symptom response data, with provisional correspondence to clinical awareness status.">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Clamp-Based IAH Classification Calculator">
+<meta name="description" content="Shiny application for calculating study-derived, clamp-based IAH and NAH classifications from uploaded or manually entered physiological and symptom response data. Classifications reflect controlled hypoglycemic clamp responses and are not standalone clinical diagnoses.">
+<meta property="og:description" content="Shiny application for calculating study-derived, clamp-based IAH and NAH classifications from uploaded or manually entered physiological and symptom response data. Classifications reflect controlled hypoglycemic clamp responses and are not standalone clinical diagnoses.">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -63,7 +63,7 @@
 </h1></div>
 <!-- badges: start -->
 
-<p>The goal of IAHRiskCalc is to calculate study-derived lower- and higher-response clamp phenotypes from symptom and physiological response values collected at 45 and 90 mg/dL. Their correspondence to clinical awareness status is provisional.</p>
+<p>The goal of IAHRiskCalc is to calculate study-derived clamp-based IAH and NAH classifications from symptom and physiological response values collected at 45 and 90 mg/dL. The classifications reflect controlled hypoglycemic clamp responses and are not standalone clinical diagnoses.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
@@ -81,8 +81,8 @@
 <li>Applies log2 transformation to physiological variables before scoring.</li>
 <li>Requires confirmation before non-positive physiological values are replaced with an offset equal to 80% of that variable’s minimum positive raw value in the current scoring dataset.</li>
 <li>Calculates an unadjusted 45 mg/dL score and an adjusted 45-vs-90 score using all 20 variables.</li>
-<li>Reports scores greater than or equal to their thresholds as a higher-response phenotype, with provisional correspondence to <code>NAH</code>, and scores below threshold as a lower-response phenotype, with provisional correspondence to <code>IAH</code>.</li>
-<li>Keeps the study’s internal <code>IAH</code>/<code>NAH</code> coding while presenting phenotype-first public results and CSV exports.</li>
+<li>Reports scores greater than or equal to their thresholds as <code>Clamp-based NAH</code> with a low Clamp-Based IAH Classification Score, and scores below threshold as <code>Clamp-based IAH</code> with a high Clamp-Based IAH Classification Score.</li>
+<li>Keeps the study’s internal <code>IAH</code>/<code>NAH</code> coding while presenting public clamp-based classification results.</li>
 <li>Accepts numeric symptom values, including decimals, without rounding.</li>
 <li>Provides interactive Plotly plots and downloadable CSV/figure exports.</li>
 </ul>
