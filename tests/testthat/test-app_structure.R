@@ -76,7 +76,7 @@ test_that("app UI exposes the calculator, plot, and methods workflows", {
   expect_match(html, "up to four subjects", fixed = TRUE)
   expect_match(
     html,
-    "Patient Value, Clamp-Based Awareness Classification, and Clamp-Based IAH Classification Score",
+    "Patient Value, Clamp-Based Awareness Classification, and Clamp-Based IAH Classification Indicator",
     fixed = TRUE
   )
   expect_match(html, "not a clinical diagnosis", fixed = TRUE)
@@ -362,7 +362,7 @@ test_that("manual scoring stores profile state for plot workflows", {
   })
 })
 
-test_that("single-subject cards use clamp-based classifications and score direction", {
+test_that("single-subject cards use expanded clamp-based classifications and indicator direction", {
   iah_score <- data.frame(
     primary_score = 16,
     primary_cutoff = 25,
@@ -405,16 +405,24 @@ test_that("single-subject cards use clamp-based classifications and score direct
   )
 
   expect_match(iah_html, "Clamp-Based Awareness Classification", fixed = TRUE)
-  expect_match(iah_html, "Clamp-based IAH", fixed = TRUE)
-  expect_match(nah_html, "Clamp-based NAH", fixed = TRUE)
+  expect_match(
+    iah_html,
+    "Clamp-Based Impaired Awareness of Hypoglycemia",
+    fixed = TRUE
+  )
+  expect_match(
+    nah_html,
+    "Clamp-Based Normal Awareness of Hypoglycemia",
+    fixed = TRUE
+  )
   expect_match(
     iah_html,
     "Study-derived from controlled hypoglycemic clamp data; not a clinical diagnosis.",
     fixed = TRUE
   )
-  expect_match(iah_html, "Clamp-Based IAH Classification Score", fixed = TRUE)
-  expect_match(iah_html, "Low", fixed = TRUE)
-  expect_match(iah_html, "High", fixed = TRUE)
+  expect_match(iah_html, "Clamp-Based IAH Classification Indicator", fixed = TRUE)
+  expect_match(iah_html, "<span>NAH</span>", fixed = TRUE)
+  expect_match(iah_html, "<span>IAH</span>", fixed = TRUE)
   expect_match(iah_html, "response-gauge high-risk", fixed = TRUE)
   expect_match(nah_html, "response-gauge low-risk", fixed = TRUE)
   expect_match(unable_html, "response-gauge unknown", fixed = TRUE)
@@ -435,9 +443,9 @@ test_that("uploaded score cards render four subjects per page", {
   expect_match(html, "Subject ID: S005", fixed = TRUE)
   expect_match(html, "Patient Value", fixed = TRUE)
   expect_match(html, "Clamp-Based Awareness Classification", fixed = TRUE)
-  expect_match(html, "Clamp-based IAH", fixed = TRUE)
-  expect_match(html, "Clamp-based NAH", fixed = TRUE)
-  expect_match(html, "Clamp-Based IAH Classification Score", fixed = TRUE)
+  expect_match(html, "Clamp-Based Impaired Awareness of Hypoglycemia", fixed = TRUE)
+  expect_match(html, "Clamp-Based Normal Awareness of Hypoglycemia", fixed = TRUE)
+  expect_match(html, "Clamp-Based IAH Classification Indicator", fixed = TRUE)
   expect_match(html, "response-gauge high-risk", fixed = TRUE)
   expect_match(html, "response-gauge low-risk", fixed = TRUE)
 })

@@ -191,11 +191,15 @@ summary_card <- function(title, value, meta = NULL, class = "") {
 }
 
 clamp_based_awareness_label <- function(score) {
-  label <- score$clamp_based_awareness_classification[[1]]
-  if (!is.null(label) && !is.na(label) && nzchar(label)) {
-    return(as.character(label))
+  impaired_awareness <- score$primary_impaired_awareness[[1]]
+  if (is.na(impaired_awareness)) {
+    return("Unable to calculate")
   }
-  clamp_based_awareness_classification(score$primary_impaired_awareness[[1]])
+  if (isTRUE(impaired_awareness)) {
+    "Clamp-Based Impaired Awareness of Hypoglycemia"
+  } else {
+    "Clamp-Based Normal Awareness of Hypoglycemia"
+  }
 }
 
 clamp_based_risk_class <- function(score) {
@@ -209,7 +213,7 @@ clamp_based_risk_card <- function(score) {
   gauge_class <- clamp_based_risk_class(score)
   div(
     class = "score-card clamp-risk-card",
-    h4("Clamp-Based IAH Classification Score"),
+    h4("Clamp-Based IAH Classification Indicator"),
     div(
       class = paste("response-gauge", gauge_class),
       div(
@@ -219,8 +223,8 @@ clamp_based_risk_card <- function(score) {
       ),
       div(
         class = "response-gauge-labels",
-        tags$span("Low"),
-        tags$span("High")
+        tags$span("NAH"),
+        tags$span("IAH")
       )
     )
   )
@@ -543,7 +547,7 @@ iah_app_ui <- function() {
           "Manual entry is the default workflow and scores one subject at a time. Uploaded CSV, XLS, or XLSX files can score multiple subjects in the same session."
         ),
         p(
-          "Single-subject and uploaded-subject results use the same patient-facing cards: Patient Value, Clamp-Based Awareness Classification, and Clamp-Based IAH Classification Score. Each classification is derived from controlled hypoglycemic clamp data and is not a clinical diagnosis. Uploaded results are grouped into pages of up to four subjects, and the scored CSV download is available from the Results header."
+          "Single-subject and uploaded-subject results use the same patient-facing cards: Patient Value, Clamp-Based Awareness Classification, and Clamp-Based IAH Classification Indicator. Each classification is derived from controlled hypoglycemic clamp data and is not a clinical diagnosis. Uploaded results are grouped into pages of up to four subjects, and the scored CSV download is available from the Results header."
         ),
         h3("Automated Preprocessing"),
         tags$ul(
@@ -599,8 +603,8 @@ iah_app_ui <- function() {
         tags$ul(
           tags$li("Adjusted 45-vs-90 cutoff: 25."),
           tags$li("Unadjusted 45 mg/dL cutoff: 66.5."),
-          tags$li("A primary score greater than or equal to its cutoff is reported as Clamp-based NAH and maps to a low Clamp-Based IAH Classification Score."),
-          tags$li("A primary score below its cutoff is reported as Clamp-based IAH and maps to a high Clamp-Based IAH Classification Score.")
+          tags$li("A primary score greater than or equal to its cutoff is reported as Clamp-based NAH and points to NAH on the Clamp-Based IAH Classification Indicator."),
+          tags$li("A primary score below its cutoff is reported as Clamp-based IAH and points to IAH on the Clamp-Based IAH Classification Indicator.")
         ),
         h3("Plots and Exports"),
         p(
