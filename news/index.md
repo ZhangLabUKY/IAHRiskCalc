@@ -12,9 +12,11 @@
   diagnoses.
 - Retained the scoring equations, cutoffs, and internal `IAH`/`NAH`
   classification codes unchanged.
-- Clarified that manual symptom entries are numeric, may include decimal
-  values, and are scored without rounding; raw physiological entries
-  continue to be log2-transformed before scoring.
+- Updated symptom validation so manually entered and uploaded 90/45
+  mg/dL symptom ratings must be whole numbers from 0 to 6; decimal,
+  negative, and above-range values are rejected without rounding.
+  Decimal physiological entries remain supported, and fractional values
+  created by mean imputation are retained.
 - Added three static manual-entry example subjects. Complete examples
   proceed directly to calculation, while the incomplete example
   demonstrates the No Imputation and Mean imputation workflows with six

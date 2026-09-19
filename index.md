@@ -33,7 +33,12 @@ pak::pak("ZhangLabUKY/IAHRiskCalc")
   `Clamp-based IAH` on the IAH side of the indicator.
 - Keeps the study’s internal `IAH`/`NAH` coding while presenting public
   clamp-based classification results.
-- Accepts numeric symptom values, including decimals, without rounding.
+- Requires symptom ratings at 90 and 45 mg/dL to be whole numbers from 0
+  to 6; decimal, negative, and above-range values are rejected without
+  rounding.
+- Accepts decimal physiological values under the existing log2
+  transformation and offset rules; fractional values created by mean
+  imputation are retained.
 - Provides interactive Plotly plots and downloadable CSV/figure exports.
 
 ## Run locally
